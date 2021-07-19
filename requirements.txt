@@ -1,10 +1,13 @@
 werkzeug
 flask
 flask-bootstrap
+flask-login
 flask-mail
 flask-migrate
 flask-moment
 flask-sqlalchemy
 flask-wtf
+itsdangerous
 wtforms
 python-dotenv
+click
