@@ -1,5 +1,5 @@
-werkzeug
-flask
+werkzeug~=1.0.1
+flask~=1.1.2
 flask-bootstrap
 flask-login
 flask-mail
@@ -7,7 +7,9 @@ flask-migrate
 flask-moment
 flask-sqlalchemy
 flask-wtf
-itsdangerous
-wtforms
+itsdangerous~=2.0.1
+wtforms~=2.3.3
 python-dotenv
-click
+click~=8.0.1
+alembic~=1.6.5
+sqlalchemy~=1.4.21
