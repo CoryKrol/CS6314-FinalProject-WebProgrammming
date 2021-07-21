@@ -98,7 +98,7 @@ def change_password():
 
 @auth.route('/confirmation')
 @login_required
-def resent_confirmation_email():
+def resend_confirmation_email():
     token = current_user.generate_confirmation_token()
     send_email(current_user.email,
                'Confirm your Hedgehog Account',
