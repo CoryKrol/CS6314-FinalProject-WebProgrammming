@@ -1,7 +1,7 @@
 import unittest
 import time
 from app import create_app, db
-from app.models import User
+from app.models import AnonymousUser, Permission, Role, User
 
 
 class ModelUserTest(unittest.TestCase):
@@ -10,6 +10,7 @@ class ModelUserTest(unittest.TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
+        Role.insert_roles()
 
     def tearDown(self):
         db.session.remove()
@@ -23,7 +24,7 @@ class ModelUserTest(unittest.TestCase):
     def test_no_password_getter(self):
         user = User(password='password')
         with self.assertRaises(AttributeError):
-            user.password
+            user.password()
 
     def test_password_verification(self):
         user = User(password='password')
@@ -32,30 +33,30 @@ class ModelUserTest(unittest.TestCase):
 
     def test_password_salting(self):
         user = User(password='password')
-        user2 = User(password='pa$$w0rd')
+        user2 = User(password='password')
         self.assertTrue(user.password_hash != user2.password_hash)
 
-    def test_valid_confirmation_token(self):
+    def test_valid_account_confirmation_token(self):
         user = User(password='password')
         db.session.add(user)
         db.session.commit()
-        token = user.generate_confirmation_token()
+        token = user.generate_account_confirmation_token()
         self.assertTrue(user.confirm(token))
 
-    def test_invalid_confirmation_token(self):
+    def test_invalid_account_confirmation_token(self):
         user = User(password='password')
         user2 = User(password='pa$$w0rd')
         db.session.add(user)
         db.session.add(user2)
         db.session.commit()
-        token = user.generate_confirmation_token()
+        token = user.generate_account_confirmation_token()
         self.assertFalse(user2.confirm(token))
 
     def test_expired_confirmation_token(self):
         user = User(password='password')
         db.session.add(user)
         db.session.commit()
-        token = user.generate_confirmation_token(1)
+        token = user.generate_account_confirmation_token(1)
         time.sleep(2)
         self.assertFalse(user.confirm(token))
 
@@ -102,3 +103,39 @@ class ModelUserTest(unittest.TestCase):
         token = user2.generate_email_change_token('ta@utdallas.edu')
         self.assertFalse(user2.change_email(token))
         self.assertTrue(user2.email == 'student@utdallas.edu')
+
+    def test_user_role(self):
+        user = User(email='student@utdallas.edu', password='password')
+        self.assertTrue(user.can(Permission.FOLLOW))
+        self.assertTrue(user.can(Permission.COMMENT))
+        self.assertTrue(user.can(Permission.WRITE))
+        self.assertFalse(user.can(Permission.MODERATE))
+        self.assertFalse(user.can(Permission.ADMIN))
+
+    @staticmethod
+    def get_user_with_role(role):
+        return User(email='student@utdallas.edu', password='password', role=role)
+
+    def test_moderator_role(self):
+        user = self.get_user_with_role(Role.query.filter_by(name='Moderator').first())
+        self.assertTrue(user.can(Permission.FOLLOW))
+        self.assertTrue(user.can(Permission.COMMENT))
+        self.assertTrue(user.can(Permission.WRITE))
+        self.assertTrue(user.can(Permission.MODERATE))
+        self.assertFalse(user.can(Permission.ADMIN))
+
+    def test_administrator_role(self):
+        user = self.get_user_with_role(Role.query.filter_by(name='Administrator').first())
+        self.assertTrue(user.can(Permission.FOLLOW))
+        self.assertTrue(user.can(Permission.COMMENT))
+        self.assertTrue(user.can(Permission.WRITE))
+        self.assertTrue(user.can(Permission.MODERATE))
+        self.assertTrue(user.can(Permission.ADMIN))
+
+    def test_anonymous_user(self):
+        user = AnonymousUser()
+        self.assertFalse(user.can(Permission.FOLLOW))
+        self.assertFalse(user.can(Permission.COMMENT))
+        self.assertFalse(user.can(Permission.WRITE))
+        self.assertFalse(user.can(Permission.MODERATE))
+        self.assertFalse(user.can(Permission.ADMIN))

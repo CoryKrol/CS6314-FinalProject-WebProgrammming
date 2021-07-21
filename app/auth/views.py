@@ -59,7 +59,7 @@ def register():
                         password=form.password.data)
         db.session.add(new_user)
         db.session.commit()
-        token = new_user.generate_confirmation_token()
+        token = new_user.generate_account_confirmation_token()
         send_email(new_user.email, 'Confirm your Hedgehog Account', '/auth/email/confirmation', user=new_user,
                    token=token)
         flash('A confirmation email has been sent to complete the registration process')
@@ -99,7 +99,7 @@ def change_password():
 @auth.route('/confirmation')
 @login_required
 def resend_confirmation_email():
-    token = current_user.generate_confirmation_token()
+    token = current_user.generate_account_confirmation_token()
     send_email(current_user.email,
                'Confirm your Hedgehog Account',
                '/auth/email/confirmation',

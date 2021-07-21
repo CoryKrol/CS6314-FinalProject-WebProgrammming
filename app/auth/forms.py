@@ -6,6 +6,9 @@ from ..models import User
 
 
 class ChangeEmailForm(FlaskForm):
+    """
+    Rendered by wtf.quick_form()
+    """
     email = StringField('New Email', validators=[DataRequired(), Length(1, 64),
                                                  Email()])
     password = PasswordField('Password', validators=[DataRequired()])

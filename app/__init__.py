@@ -11,6 +11,7 @@ bootstrap = Bootstrap()
 mail = Mail()
 moment = Moment()
 db = SQLAlchemy()
+
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'  # Must prefix route with the auth blueprint namespace
 
@@ -26,14 +27,15 @@ def create_app(config_name):
     config[config_name].init_app(app)
 
     bootstrap.init_app(app)
-    login_manager.init_app(app)
     mail.init_app(app)
     moment.init_app(app)
     db.init_app(app)
+    login_manager.init_app(app)
 
     # attach routes & error handlers to application here
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
+
     from .auth import auth as auth_blueprint
     app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
