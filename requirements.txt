@@ -15,3 +15,6 @@ alembic
 sqlalchemy
 flask-httpauth
 httpie
+coverage
+selenium
+faker
