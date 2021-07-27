@@ -1,8 +1,23 @@
 {% extends "base.html" %}
 
-{% block title %}Hedgehog - {{ stock.name }}{% endblock %}
+{% block title %}Hedgehog{% endblock %}
 
 {% block page_content %}
-    <p>{{ stock.name }} - {{ stock.ticker }}</p>
-    {{ stocks.last_trade_price }}
+    {% for stock in stocks %}
+        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+          <div class="card-header">{{ stock.ticker }}</div>
+          <div class="card-body">
+            <h5 class="card-title">{{ stock.name }}</h5>
+            <p class="card-text">Company Bio: {{ stock.description }}</p>
+            <p class="card-text">Industry: {{ stock.industry }}</p>
+            <p class="card-text">Last Trade Price: ${{ stock.last_trade_price }}</p>
+            <p class="card-text">52 Week High: {{ stock.fifty_two_week_high }}</p>
+            <p class="card-text">52 Week Low: {{ stock.fifty_two_week_low }}</p>
+            <p class="card-text">Stretch Goals: {{ stock.stretch_goals }}</p>
+            <p class="card-text">Today's Groth: {{ stock.todays_growth }}</p>
+            <p class="card-text">Total Growth: {{ stock.total_growth }}</p>
+            <p class="card-text">News: {{ stock.news }}</p>
+          </div>
+        </div>
+    {% endfor %}
 {% endblock %}
