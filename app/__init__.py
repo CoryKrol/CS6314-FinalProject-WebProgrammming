@@ -42,4 +42,7 @@ def create_app(config_name):
     from .stocks import stocks as stocks_blueprint
     app.register_blueprint(stocks_blueprint, url_prefix='/stocks')
 
+    from .users import users as users_blueprint
+    app.register_blueprint(users_blueprint, url_prefix='/users')
+
     return app
