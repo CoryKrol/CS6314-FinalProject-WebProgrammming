@@ -36,5 +36,5 @@ def edit_stock(stock_id):
 
 @stocks.route('/<ticker>')
 def stock_info(ticker):
-    stock = Stock.query.filter_by(ticker=ticker)
+    stock = Stock.query.filter_by(ticker=ticker).first()
     return render_template('stocks/stock_info.html', stock=stock)
