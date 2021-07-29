@@ -39,7 +39,6 @@ class Role(db.Model):
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     def __init__(self, **kwargs):
-        super(Role, self).__init__(**kwargs)
         if self.permissions is None:
             self.permissions = 0
 
@@ -84,6 +83,28 @@ class Role(db.Model):
         return self.permissions & perm == perm
 
 
+class Stock(db.Model):
+    __tablename__ = 'stocks'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(64), unique=True, index=True)
+    ticker = db.Column(db.String(5), unique=True, index=True)
+    sector = db.Column(db.String(32), index=True)
+    is_active = db.Column(db.Boolean, default=True)
+    year_high = db.Column(db.Float)
+    year_low = db.Column(db.Float)
+    trades = db.relationship('Trade', backref='stock', lazy='dynamic')
+
+
+class Trade(db.Model):
+    __tablename__ = 'trades'
+    id = db.Column(db.Integer, primary_key=True)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    timestamp = db.Column(db.DateTime(), index=True, default=datetime.utcnow)
+    quantity = db.Column(db.Integer)
+    price = db.Column(db.Float)
+
+
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -98,6 +119,7 @@ class User(UserMixin, db.Model):
     member_since = db.Column(db.DateTime(), default=datetime.utcnow)
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
+    trades = db.relationship('Trade', backref='user', lazy='dynamic')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)

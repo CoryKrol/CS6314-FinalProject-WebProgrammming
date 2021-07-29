@@ -3,18 +3,25 @@ from datetime import datetime
 from flask import abort, current_app, flash, render_template, session, redirect, request, url_for
 from flask_login import current_user, login_required
 from . import main
-from .forms import EditProfileAdministratorForm, EditProfileForm, NameForm
+from .forms import BuyStockForm, EditProfileAdministratorForm, EditProfileForm
 from .. import db
 from ..decorators import admin_required
-from ..models import Role, User
+from ..models import Permission, Role, Stock, Trade, User
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html',
-                           name=session.get('name'),
-                           known=session.get('known', False),
-                           current_time=datetime.utcnow())
+    form = BuyStockForm()
+    if current_user.can(Permission.WRITE) and form.validate_on_submit():
+        trade = Trade(stock=Stock.query.filter_by(ticker=form.ticker.data).first(),
+                      price=form.price.data,
+                      quantity=form.quantity.data,
+                      user=current_user._get_current_object())
+        db.session.add(trade)
+        db.session.commit()
+        return redirect(url_for('.index'))
+    trades = Trade.query.order_by(Trade.timestamp.desc()).all()
+    return render_template('index.html', form=form, trades=trades)
 
 
 @main.route('/edit-profile/<int:user_id>', methods=['GET', 'POST'])
@@ -67,8 +74,11 @@ def edit_profile():
 
 @main.route('/user/<username>')
 def user_profile(username):
-    user_object = User.query.filter_by(username=username).first_or_404()
-    return render_template('user_profile.html', user=user_object)
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        abort(404)
+    trades = user.trades.order_by(Trade.timestamp.desc()).all()
+    return render_template('user_profile.html', user=user, trades=trades)
 
 
 @main.route('/shutdown')
