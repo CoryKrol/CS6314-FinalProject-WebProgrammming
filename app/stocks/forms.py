@@ -13,8 +13,8 @@ class EditStockForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(1, 64)])
     active = BooleanField('Active')
     sector = StringField('Sector', validators=[DataRequired(), Length(1, 32)])
-    year_high = IntegerField('52-Week High', validators=[DataRequired()])
-    year_low = IntegerField('52-Week Low', validators=[DataRequired()])
+    year_high = DecimalField('52-Week High', places=2, validators=[DataRequired()])
+    year_low = DecimalField('52-Week Low', places=2, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
     def __init__(self, stock, *args, **kwargs):
@@ -28,11 +28,11 @@ class EditStockForm(FlaskForm):
     def validate_year_high(self, field):
         if field.data < 0:
             raise ValidationError('52-Week High cannot be negative.')
-        elif field < self.year_low.data:
+        elif field.data < self.year_low.data:
             raise ValidationError('52-Week High cannot be > 52-Week Low.')
 
     def validate_year_low(self, field):
         if field.data < 0:
             raise ValidationError('52-Week Low cannot be negative.')
-        elif field > self.year_high.data:
+        elif field.data > self.year_high.data:
             raise ValidationError('52-Week Low cannot be > 52-Week High.')

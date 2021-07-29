@@ -23,8 +23,8 @@ def edit_stock(stock_id):
         new_stock.year_low = form.year_low.data
         db.session.add(new_stock)
         db.session.commit()
-        flash('Profile for ' + new_stock.username + ' updated successfully.')
-        return redirect(url_for('.user_profile', username=new_stock.username))
+        flash('Profile for ' + new_stock.name + ' updated successfully.')
+        return redirect(url_for('.stock_info', ticker=new_stock.ticker))
     form.ticker.data = new_stock.ticker
     form.name.data = new_stock.name
     form.active.data = new_stock.is_active
