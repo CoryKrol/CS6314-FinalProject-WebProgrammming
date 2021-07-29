@@ -36,7 +36,7 @@
     {% include '_trades.html' %}
     {% if pagination %}
         <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.user', username=user.username) }}
+            {{ macros.pagination_widget(pagination, '.user_profile', username=user.username) }}
         </div>
     {% endif %}
 {% endblock %}

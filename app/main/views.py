@@ -22,10 +22,10 @@ def index():
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     pagination = Trade.query.order_by(Trade.timestamp.desc()).paginate(
-        page, per_page=current_app.config['INDEX_POSTS_PER_PAGE'],
+        page, per_page=current_app.config['INDEX_TRADES_PER_PAGE'],
         error_out=False)
     trades = pagination.items
-    return render_template('index.html', form=form, trades=trades, pagination=trades)
+    return render_template('index.html', form=form, trades=trades, pagination=pagination)
 
 
 @main.route('/edit-profile/<int:user_id>', methods=['GET', 'POST'])

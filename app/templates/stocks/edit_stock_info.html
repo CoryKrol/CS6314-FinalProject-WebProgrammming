@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block title %}Hedgehog - {{ stock.name }}{% endblock %}
+
+{% block page_content %}
+    <p>{{ stock.name }} - {{ stock.ticker }}</p>
+    {{ stocks.last_trade_price }}
+{% endblock %}
