@@ -42,3 +42,9 @@ div.trade-content {
     margin-left: 48px;
     min-height: 48px;
 }
+div.pagination {
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    width: 100%;
+}

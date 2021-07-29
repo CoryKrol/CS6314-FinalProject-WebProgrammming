@@ -20,8 +20,12 @@ def index():
         db.session.add(trade)
         db.session.commit()
         return redirect(url_for('.index'))
-    trades = Trade.query.order_by(Trade.timestamp.desc()).all()
-    return render_template('index.html', form=form, trades=trades)
+    page = request.args.get('page', 1, type=int)
+    pagination = Trade.query.order_by(Trade.timestamp.desc()).paginate(
+        page, per_page=current_app.config['INDEX_POSTS_PER_PAGE'],
+        error_out=False)
+    trades = pagination.items
+    return render_template('index.html', form=form, trades=trades, pagination=trades)
 
 
 @main.route('/edit-profile/<int:user_id>', methods=['GET', 'POST'])
