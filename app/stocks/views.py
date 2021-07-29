@@ -8,7 +8,7 @@ from ..decorators import admin_required
 from ..models import Stock
 
 
-@stocks.route('/edit-stock/<int:stock_id>', methods=['GET', 'POST'])
+@stocks.route('/edit/<int:stock_id>', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def edit_stock(stock_id):
@@ -34,7 +34,7 @@ def edit_stock(stock_id):
     return render_template('stocks/edit_stock.html', form=form, stock=new_stock)
 
 
-@stocks.route('/stock')
-def get_stock_info():
-    stock = {'name': 'Tesla', 'ticker': 'TSLA', 'last_trade_price': '13.00'}
+@stocks.route('/<ticker>')
+def stock_info(ticker):
+    stock = Stock.query.filter_by(ticker=ticker)
     return render_template('stocks/stock_info.html', stock=stock)

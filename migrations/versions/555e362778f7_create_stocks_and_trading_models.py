@@ -33,12 +33,12 @@ def upgrade():
     op.create_index(op.f('ix_stocks_ticker'), 'stocks', ['ticker'], unique=True)
     op.create_table('trades',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('stock_id', sa.Integer(), nullable=True),
+    sa.Column('id', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('quantity', sa.Integer(), nullable=True),
     sa.Column('price', sa.Float(), nullable=True),
-    sa.ForeignKeyConstraint(['stock_id'], ['stocks.id'], ),
+    sa.ForeignKeyConstraint(['id'], ['stocks.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

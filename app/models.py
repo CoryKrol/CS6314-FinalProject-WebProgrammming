@@ -97,9 +97,8 @@ class Stock(db.Model):
 
 class Trade(db.Model):
     __tablename__ = 'trades'
-    id = db.Column(db.Integer, primary_key=True)
-    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     timestamp = db.Column(db.DateTime(), index=True, default=datetime.utcnow)
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)
