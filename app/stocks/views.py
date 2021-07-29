@@ -2,10 +2,29 @@ from flask import render_template, flash, redirect, url_for
 from flask_login import login_required
 
 from . import stocks
-from .forms import EditStockForm
+from .forms import AddStockForm, EditStockForm
 from .. import db
 from ..decorators import admin_required
 from ..models import Stock
+
+
+@stocks.route('/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_stock():
+    form = AddStockForm()
+    if form.validate_on_submit():
+        new_stock = Stock(ticker=form.ticker.data,
+                          name=form.name.data,
+                          is_active=form.active.data,
+                          sector=form.sector.data,
+                          year_high=form.year_high.data,
+                          year_low=form.year_low.data)
+        db.session.add(new_stock)
+        db.session.commit()
+        flash('Profile for ' + new_stock.name + ' created successfully.')
+        return redirect(url_for('.stock_info', ticker=new_stock.ticker))
+    return render_template('stocks/edit_stock.html', form=form)
 
 
 @stocks.route('/edit/<int:stock_id>', methods=['GET', 'POST'])
