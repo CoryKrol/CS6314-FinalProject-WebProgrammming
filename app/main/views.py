@@ -61,7 +61,7 @@ def edit_profile_admin(user_id):
 def edit_profile():
     form = EditProfileForm()
     if form.validate_on_submit():
-        # Save submitted form
+                    # Save submitted form
         current_user.about_me = form.about_me.data
         current_user.location = form.location.data
         current_user.name = form.name.data
