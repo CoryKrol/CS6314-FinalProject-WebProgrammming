@@ -39,6 +39,7 @@ class Role(db.Model):
     users = db.relationship('User', backref='role', lazy='dynamic')
 
     def __init__(self, **kwargs):
+        super(Role, self).__init__(**kwargs)
         if self.permissions is None:
             self.permissions = 0
 
@@ -56,12 +57,12 @@ class Role(db.Model):
                               Permission.ADMIN],
         }
         default_role = 'User'
-        for new_row in roles:
-            role = Role.query.filter_by(name=new_row).first()
+        for role_dict in roles:
+            role = Role.query.filter_by(name=role_dict).first()
             if role is None:
-                role = Role(name=new_row)
+                role = Role(name=role_dict)
             role.reset_permissions()
-            for perm in roles[new_row]:
+            for perm in roles[role_dict]:
                 role.add_permission(perm)
             role.default = (role.name == default_role)
             db.session.add(role)
@@ -97,8 +98,9 @@ class Stock(db.Model):
 
 class Trade(db.Model):
     __tablename__ = 'trades'
-    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'), primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     timestamp = db.Column(db.DateTime(), index=True, default=datetime.utcnow)
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)

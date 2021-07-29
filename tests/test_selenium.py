@@ -4,7 +4,7 @@ import time
 import unittest
 from selenium import webdriver
 from app import create_app, db, fake
-from app.models import Role, User
+from app.models import Role, User, Stock
 
 
 class SeleniumTestCase(unittest.TestCase):
@@ -35,6 +35,10 @@ class SeleniumTestCase(unittest.TestCase):
             db.create_all()
             Role.insert_roles()
             fake.users(10)
+            stock = Stock(name='Apple', ticker='AAPL', sector="Tech", is_active=True, year_high=1000, year_low=100)
+            db.session.add(stock)
+            db.session.commit()
+            fake.trades(10)
 
             # Add administrator user
             admin_role = Role.query.filter_by(name='Administrator').first()
@@ -76,7 +80,7 @@ class SeleniumTestCase(unittest.TestCase):
     def test_admin_home_page(self):
         # Navigate to home
         self.client.get('http://localhost:5000/')
-        self.assertTrue(re.search('Hello,\s+Stranger\s+!',
+        self.assertTrue(re.search('Hello,\s+NPC\s+!',
                                   self.client.page_source))
 
         # Navigate to login

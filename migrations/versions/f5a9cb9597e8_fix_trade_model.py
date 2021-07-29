@@ -1,8 +1,8 @@
-"""create stocks and trading models
+"""fix trade model
 
-Revision ID: 555e362778f7
+Revision ID: f5a9cb9597e8
 Revises: 1da3e524a8fd
-Create Date: 2021-07-28 22:40:23.613400
+Create Date: 2021-07-29 18:02:30.025281
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '555e362778f7'
+revision = 'f5a9cb9597e8'
 down_revision = '1da3e524a8fd'
 branch_labels = None
 depends_on = None
@@ -33,12 +33,12 @@ def upgrade():
     op.create_index(op.f('ix_stocks_ticker'), 'stocks', ['ticker'], unique=True)
     op.create_table('trades',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('id', sa.Integer(), nullable=True),
+    sa.Column('stock_id', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('quantity', sa.Integer(), nullable=True),
     sa.Column('price', sa.Float(), nullable=True),
-    sa.ForeignKeyConstraint(['id'], ['stocks.id'], ),
+    sa.ForeignKeyConstraint(['stock_id'], ['stocks.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )

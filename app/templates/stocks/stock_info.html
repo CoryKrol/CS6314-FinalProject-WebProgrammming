@@ -9,7 +9,7 @@
             <p>{{ stock.sector }}</p>
             <p>
                 {% if current_user.is_administrator() %}
-                <a class="btn btn-danger" href="{{ url_for('.edit_stock', stock_id=stock.id) }}">Edit Stock [Admin]</a>
+                <a class="btn btn-danger" href="{{ url_for('.edit_stock', ticker=stock.ticker) }}">Edit Stock [Admin]</a>
                 {% endif %}
             </p>
         </div>

@@ -14,7 +14,7 @@ class Config:
     HEDGEHOG_MAIL_SENDER = 'Hedgehog Admin <Hedgehog@example.com>'
     HEDGEHOG_ADMIN = os.environ.get('HEDGEHOG_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    INDEX_TRADES_PER_PAGE = os.environ.get('INDEX_TRADES_PER_PAGE') or 10
+    TRADES_PER_PAGE = os.environ.get('TRADES_PER_PAGE') or 10
 
     @staticmethod
     def init_app(app):

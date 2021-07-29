@@ -1,11 +1,11 @@
-from flask import render_template, flash, redirect, url_for
+from flask import abort, current_app, render_template, flash, redirect, request, url_for
 from flask_login import login_required
 
 from . import stocks
 from .forms import AddStockForm, EditStockForm
 from .. import db
 from ..decorators import admin_required
-from ..models import Stock
+from ..models import Stock, Trade
 
 
 @stocks.route('/add', methods=['GET', 'POST'])
@@ -27,33 +27,44 @@ def add_stock():
     return render_template('stocks/edit_stock.html', form=form)
 
 
-@stocks.route('/edit/<int:stock_id>', methods=['GET', 'POST'])
+@stocks.route('/edit/<ticker>', methods=['GET', 'POST'])
 @login_required
 @admin_required
-def edit_stock(stock_id):
-    new_stock = Stock.query.get_or_404(stock_id)
-    form = EditStockForm(stock=new_stock)
+def edit_stock(ticker):
+    stock = Stock.query.filter_by(ticker=ticker).first()
+    if stock is None:
+        abort(404)
+    form = EditStockForm(stock=stock)
     if form.validate_on_submit():
-        new_stock.ticker = form.ticker.data
-        new_stock.name = form.name.data
-        new_stock.is_active = form.active.data
-        new_stock.sector = form.sector.data
-        new_stock.year_high = form.year_high.data
-        new_stock.year_low = form.year_low.data
-        db.session.add(new_stock)
+        stock.ticker = form.ticker.data
+        stock.name = form.name.data
+        stock.is_active = form.active.data
+        stock.sector = form.sector.data
+        stock.year_high = form.year_high.data
+        stock.year_low = form.year_low.data
+        db.session.add(stock)
         db.session.commit()
-        flash('Profile for ' + new_stock.name + ' updated successfully.')
-        return redirect(url_for('.stock_info', ticker=new_stock.ticker))
-    form.ticker.data = new_stock.ticker
-    form.name.data = new_stock.name
-    form.active.data = new_stock.is_active
-    form.sector.data = new_stock.sector
-    form.year_high.data = new_stock.year_high
-    form.year_low.data = new_stock.year_low
-    return render_template('stocks/edit_stock.html', form=form, stock=new_stock)
+        flash('Profile for ' + stock.name + ' updated successfully.')
+        return redirect(url_for('.stock_info', ticker=stock.ticker))
+    form.ticker.data = stock.ticker
+    form.name.data = stock.name
+    form.active.data = stock.is_active
+    form.sector.data = stock.sector
+    form.year_high.data = stock.year_high
+    form.year_low.data = stock.year_low
+    return render_template('stocks/edit_stock.html', form=form, stock=stock)
 
 
 @stocks.route('/<ticker>')
+@login_required
 def stock_info(ticker):
     stock = Stock.query.filter_by(ticker=ticker).first()
-    return render_template('stocks/stock_info.html', stock=stock)
+    if stock is None:
+        abort(404)
+    page = request.args.get('page', 1, type=int)
+    pagination = stock.trades.order_by(Trade.timestamp.desc()).paginate(
+        page,
+        per_page=current_app.config['TRADES_PER_PAGE'],
+        error_out=False)
+    trades = pagination.items
+    return render_template('stocks/stock_info.html', stock=stock, trades=trades, pagination=pagination)
