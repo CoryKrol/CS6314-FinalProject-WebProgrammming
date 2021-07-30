@@ -14,9 +14,11 @@ class Config:
     HEDGEHOG_MAIL_SENDER = 'Hedgehog Admin <Hedgehog@example.com>'
     HEDGEHOG_ADMIN = os.environ.get('HEDGEHOG_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    TRADES_PER_PAGE = os.environ.get('TRADES_PER_PAGE') or 10
 
     @staticmethod
     def init_app(app):
+        """Not needed"""
         pass
 
 
@@ -30,6 +32,7 @@ class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or \
         'sqlite://'
+    WTF_CSRF_ENABLED = False
 
 
 class ProductionConfig(Config):

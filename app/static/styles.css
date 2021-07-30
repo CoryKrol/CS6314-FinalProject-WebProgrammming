@@ -1,0 +1,50 @@
+.profile-header {
+    margin-left: 280px;
+    min-height: 260px;
+}
+
+.profile-thumbnail {
+    position: absolute;
+}
+
+ul.trades {
+    border-top: 1px solid #e0e0e0;
+    list-style-type: none;
+    margin: 16px 0 0 0;
+    padding: 0;
+}
+ul.trade li.trades {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 8px;
+}
+ul.trades li.trade:hover {
+    background-color: #f0f0f0;
+}
+div.trade-date {
+    float: right;
+}
+div.trade-user {
+    font-weight: bold;
+}
+div.trade-ticker {
+    font-weight: bold;
+}
+div.trade-price {
+    font-weight: bold;
+}
+div.trade-quantity {
+    font-weight: bold;
+}
+div.trade-thumbnail {
+    position: absolute;
+}
+div.trade-content {
+    margin-left: 48px;
+    min-height: 48px;
+}
+div.pagination {
+    margin: 0;
+    padding: 0;
+    text-align: right;
+    width: 100%;
+}

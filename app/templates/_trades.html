@@ -1,0 +1,28 @@
+<ul class="trades">
+        {% for trade in trades %}
+        <li class="trade">
+            <div class="trade-thumbnail">
+                <a href="{{ url_for('main.user_profile', username=trade.user.username) }}">
+                    <img class="img-rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
+                </a>
+            </div>
+            <div class="trade-content">
+                <div class="trade-date">{{ moment(trade.timestamp).fromNow() }}</div>
+                <div class="trade-user"><a href="{{ url_for('main.user_profile', username=trade.user.username) }}">{{ trade.user.username }}</a></div>
+                <div class="trade-ticker"><a href="{{ url_for('stocks.stock_info', ticker=trade.stock.ticker) }}">{{ trade.stock.ticker }}</a></div>
+                <div class="trade-price">{{ trade.price }}</div>
+                <div class="trade-quantity">{{ trade.quantity }}</div>
+            </div>
+            <div class="post-footer">
+                {% if current_user.is_administrator() %}
+                    <a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}">
+                        <span class="label label-danger">Edit [Admin]</span>
+                    </a>
+                {% endif %}
+                <a href="{{ url_for('trades.trade', trade_id=trade.id) }}">
+                    <span class="label label-danger">Permalink</span>
+                </a>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
