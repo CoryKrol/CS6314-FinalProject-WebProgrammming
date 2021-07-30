@@ -1,28 +1,9 @@
-from ..models import Role, User
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, DecimalField, IntegerField, SelectField, StringField, SubmitField, TextAreaField
+from flask_wtf import FlaskForm
+from wtforms import BooleanField, SelectField, StringField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Email, Length, Regexp, ValidationError
-from ..models import Permission, Role, Stock, Trade, User
 
-
-class BuyStockForm(FlaskForm):
-    ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
-    price = DecimalField('Price', validators=[DataRequired()], places=2)
-    quantity = IntegerField('Quantity', validators=[DataRequired()])
-    submit = SubmitField('Submit')
-
-    def validate_price(self, field):
-        if field.data < 0:
-            raise ValidationError('Price cannot be negative.')
-
-    def validate_quantity(self, field):
-        if field.data < 1:
-            raise ValidationError('Cannot buy less than 0 shares.')
-
-    def validate_ticker(self, field):
-        """TODO: Send email to admin to add stock manually"""
-        if not Stock.query.filter_by(ticker=field.data).first():
-            raise ValidationError('Stock not in system. An administrator has been notified.')
+from ..models import Role, User
 
 
 class EditProfileAdministratorForm(FlaskForm):

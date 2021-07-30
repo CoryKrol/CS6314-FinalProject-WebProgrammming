@@ -1,32 +1,22 @@
-from datetime import datetime
-
-from flask import abort, current_app, flash, render_template, session, redirect, request, url_for
+from flask import abort, current_app, flash, render_template, redirect, request, url_for
 from flask_login import current_user, login_required
+
 from . import main
-from .forms import BuyStockForm, EditProfileAdministratorForm, EditProfileForm
+from .forms import EditProfileAdministratorForm, EditProfileForm
 from .. import db
 from ..decorators import admin_required
-from ..models import Permission, Role, Stock, Trade, User
+from ..models import Role, Trade, User
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    form = BuyStockForm()
-    if current_user.can(Permission.WRITE) and form.validate_on_submit():
-        trade = Trade(stock=Stock.query.filter_by(ticker=form.ticker.data).first(),
-                      price=form.price.data,
-                      quantity=form.quantity.data,
-                      user=current_user._get_current_object())
-        db.session.add(trade)
-        db.session.commit()
-        return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     pagination = Trade.query.order_by(Trade.timestamp.desc()).paginate(
         page,
         per_page=current_app.config['TRADES_PER_PAGE'],
         error_out=False)
     trades = pagination.items
-    return render_template('index.html', form=form, trades=trades, pagination=pagination)
+    return render_template('index.html', trades=trades, pagination=pagination)
 
 
 @main.route('/edit-profile/<int:user_id>', methods=['GET', 'POST'])
@@ -62,7 +52,7 @@ def edit_profile_admin(user_id):
 def edit_profile():
     form = EditProfileForm()
     if form.validate_on_submit():
-                    # Save submitted form
+        # Save submitted form
         current_user.about_me = form.about_me.data
         current_user.location = form.location.data
         current_user.name = form.name.data

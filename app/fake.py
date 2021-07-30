@@ -1,7 +1,8 @@
 from random import randint, uniform
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.sql.expression import func, select
+
 from faker import Faker
+from sqlalchemy.exc import IntegrityError
+
 from . import db
 from .models import User, Trade, Stock
 
@@ -30,7 +31,7 @@ def trades(count=100):
     fake = Faker()
     user_count = User.query.count()
     stock_count = Stock.query.count()
-    for i in range(count):
+    for _ in range(count):
         user = User.query.offset(randint(0, user_count - 1)).first()
         stock = Stock.query.offset(randint(0, stock_count - 1)).first()
         trade = Trade(quantity=randint(0, 1000000),
