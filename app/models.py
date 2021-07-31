@@ -295,6 +295,7 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def add_self_follows():
+        """Used to upgrade existing database instances to the new model with user following"""
         for user in User.query.all():
             if not user.is_following(user):
                 user.follow(user)
