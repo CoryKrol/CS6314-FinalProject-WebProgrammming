@@ -42,15 +42,12 @@ class SeleniumTestCase(unittest.TestCase):
 
             # Add administrator user
             admin_role = Role.query.filter_by(name='Administrator').first()
-            admin = User(email='',
-                         username='student', password='password',
-                         role=admin_role, confirmed=True)
+            admin = User(email='', username='student', password='password', role=admin_role, confirmed=True)
             db.session.add(admin)
             db.session.commit()
 
             # Start Flask server in a thread
-            cls.server_thread = threading.Thread(target=cls.app.run,
-                                                 kwargs={'debug': False})
+            cls.server_thread = threading.Thread(target=cls.app.run, kwargs={'debug': False})
             cls.server_thread.start()
 
             time.sleep(1)
