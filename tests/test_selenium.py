@@ -35,7 +35,7 @@ class SeleniumTestCase(unittest.TestCase):
             db.create_all()
             Role.insert_roles()
             fake.users(10)
-            stock = Stock(name='Apple', ticker='AAPL', sector="Tech", is_active=True, year_high=1000, year_low=100)
+            stock = Stock(name='Apple', ticker='AAPL', sector="Tech", is_active=True, year_high=1000.0, year_low=100.0)
             db.session.add(stock)
             db.session.commit()
             fake.trades(10)
@@ -80,15 +80,13 @@ class SeleniumTestCase(unittest.TestCase):
     def test_admin_home_page(self):
         # Navigate to home
         self.client.get('http://localhost:5000/')
-        self.assertTrue(re.search('Hello,\s+NPC\s+!',
-                                  self.client.page_source))
+        self.assertTrue(re.search('Hello,\s+NPC\s?!', self.client.page_source))
 
         # Navigate to login
         self.client.find_element_by_link_text('Log In').click()
         self.assertIn('<h1>Login</h1>', self.client.page_source)
 
         # Login
-        self.client.find_element_by_name('email'). \
-            send_keys('student@utdallas.edu')
+        self.client.find_element_by_name('email').send_keys('student@utdallas.edu')
         self.client.find_element_by_name('password').send_keys('password')
         self.client.find_element_by_name('submit').click()
