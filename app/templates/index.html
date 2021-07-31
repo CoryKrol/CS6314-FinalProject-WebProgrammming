@@ -7,7 +7,15 @@
     <div class="page-header">
         <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}NPC{% endif %}!</h1>
     </div>
+    <div class="trade-tabs">
+    <ul class="nav nav-tabs">
+        <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">All trades</a></li>
+        {% if current_user.is_authenticated %}
+        <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_followed') }}">Followed trader trades</a></li>
+        {% endif %}
+    </ul>
     {% include '_trades.html' %}
+</div>
     {% if pagination %}
         <div class="pagination">
             {{ macros.pagination_widget(pagination, '.index') }}

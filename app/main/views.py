@@ -1,22 +1,31 @@
-from flask import abort, current_app, flash, render_template, redirect, request, url_for
+from flask import abort, current_app, flash, make_response, render_template, redirect, request, url_for
 from flask_login import current_user, login_required
 
 from . import main
 from .forms import EditProfileAdministratorForm, EditProfileForm
 from .. import db
-from ..decorators import admin_required
-from ..models import Role, Trade, User
+from ..decorators import admin_required, permission_required
+from ..models import Permission, Role, Trade, User
 
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
-    pagination = Trade.query.order_by(Trade.timestamp.desc()).paginate(
+    show_followed_trades = False
+    if current_user.is_authenticated:
+        show_followed_trades = bool(request.cookies.get('show_followed_trades', ''))
+    if show_followed_trades:
+        query = current_user.followed_trades
+    else:
+        query = Trade.query
+    pagination = query.order_by(Trade.timestamp.desc()).paginate(
         page,
-        per_page=current_app.config['TRADES_PER_PAGE'],
-        error_out=False)
+        per_page=current_app.config['TRADES_PER_PAGE'], error_out=False)
     trades = pagination.items
-    return render_template('index.html', trades=trades, pagination=pagination)
+    return render_template('index.html',
+                           trades=trades,
+                           show_followed_trades=show_followed_trades,
+                           pagination=pagination)
 
 
 @main.route('/edit-profile/<int:user_id>', methods=['GET', 'POST'])
@@ -67,6 +76,70 @@ def edit_profile():
     return render_template('edit_profile.html', form=form)
 
 
+@main.route('/follow/<username>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    if current_user.is_following(user):
+        flash('Already following user.')
+        return redirect(url_for('.user_profile', username=username))
+    current_user.follow(user)
+    db.session.commit()
+    flash('You are now following %s.' % username)
+    return redirect(url_for('.user_profile', username=username))
+
+
+@main.route('/unfollow/<username>')
+@login_required
+@permission_required(Permission.FOLLOW)
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    if not current_user.is_following(user):
+        flash('Not following user.')
+        return redirect(url_for('.user_profile', username=username))
+    current_user.unfollow(user)
+    db.session.commit()
+    flash('You are not following %s anymore.' % username)
+    return redirect(url_for('.user_profile', username=username))
+
+
+@main.route('/followers/<username>')
+def followers(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int)
+    pagination = user.followers.paginate(page, per_page=current_app.config['FOLLOWERS_PER_PAGE'], error_out=False)
+    follows = [{'user': item.follower, 'timestamp': item.timestamp}
+               for item in pagination.items]
+    return render_template('followers.html', user=user, title="Followers of",
+                           endpoint='.followers', pagination=pagination,
+                           follows=follows)
+
+
+@main.route('/followed_by/<username>')
+def followed_by(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int)
+    pagination = user.followed.paginate(page, per_page=current_app.config['FOLLOWERS_PER_PAGE'], error_out=False)
+    follows = [{'user': item.followed, 'timestamp': item.timestamp}
+               for item in pagination.items]
+    return render_template('followers.html', user=user, title="Followed by",
+                           endpoint='.followed_by', pagination=pagination,
+                           follows=follows)
+
+
 @main.route('/user/<username>')
 def user_profile(username):
     user = User.query.filter_by(username=username).first()
@@ -74,6 +147,30 @@ def user_profile(username):
         abort(404)
     trades = user.trades.order_by(Trade.timestamp.desc()).all()
     return render_template('user_profile.html', user=user, trades=trades)
+
+
+@main.route('/all')
+@login_required
+def show_all():
+    """
+    Cookies can only be set using responses, have to do it here instead of letting flask set it
+    max_age is in seconds, without setting it the cookie expires when the browser closes
+    """
+    response = make_response(redirect(url_for('.index')))
+    response.set_cookie('show_followed_trades', '', max_age=30*24*60*60)
+    return response
+
+
+@main.route('/followed')
+@login_required
+def show_followed():
+    """
+    Cookies can only be set using responses, have to do it here instead of letting flask set it
+    max_age is in seconds, without setting it the cookie expires when the browser closes
+    """
+    response = make_response(redirect(url_for('.index')))
+    response.set_cookie('show_followed_trades', '1', max_age=30*24*60*60)
+    return response
 
 
 @main.route('/shutdown')

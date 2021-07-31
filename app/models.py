@@ -85,13 +85,13 @@ class Role(db.Model):
         return self.permissions & perm == perm
 
 
-class Favorite(db.Model):
-    __tablename__ = 'favorites'
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-                        primary_key=True)
-    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
-                         primary_key=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+# class Favorite(db.Model):
+#     __tablename__ = 'favorites'
+#     user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+#                         primary_key=True)
+#     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
+#                          primary_key=True)
+#     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Stock(db.Model):
@@ -104,11 +104,11 @@ class Stock(db.Model):
     year_high = db.Column(db.Float)
     year_low = db.Column(db.Float)
     trades = db.relationship('Trade', backref='stock', lazy='dynamic')
-    users = db.relationship('Favorite',
-                            foreign_keys=[Favorite.stock_id],
-                            backref=db.backref('stock', lazy='joined'),
-                            lazy='dynamic',
-                            cascade='all, delete-orphan')
+    # users = db.relationship('Favorite',
+    #                         foreign_keys=[Favorite.stock_id],
+    #                         backref=db.backref('stock', lazy='joined'),
+    #                         lazy='dynamic',
+    #                         cascade='all, delete-orphan')
 
 
 class Trade(db.Model):
@@ -145,19 +145,19 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     trades = db.relationship('Trade', backref='user', lazy='dynamic')
-    stocks = db.relationship('Favorite',
-                             foreign_keys=[Favorite.user_id],
-                             backref=db.backref('user', lazy='joined'),
-                             lazy='dynamic',
-                             cascade='all, delete-orphan')
-    followed_users = db.relationship('Follow',
-                                     foreign_keys=[Follow.followed_id],
-                                     backref=db.backref('followed', lazy='joined'),
-                                     lazy='dynamic',
-                                     cascade='all, delete-orphan')
+    # stocks = db.relationship('Favorite',
+    #                          foreign_keys=[Favorite.user_id],
+    #                          backref=db.backref('user', lazy='joined'),
+    #                          lazy='dynamic',
+    #                          cascade='all, delete-orphan')
+    followed = db.relationship('Follow',
+                               foreign_keys=[Follow.follower_id],
+                               backref=db.backref('follower', lazy='joined'),
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
     followers = db.relationship('Follow',
-                                foreign_keys=[Follow.follower_id],
-                                backref=db.backref('follower', lazy='joined'),
+                                foreign_keys=[Follow.followed_id],
+                                backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic',
                                 cascade='all, delete-orphan')
 
@@ -170,6 +170,7 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(default=True).first()
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = self.gravatar_hash()
+        self.follow(self)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -287,6 +288,18 @@ class User(UserMixin, db.Model):
         if user.id is None:
             return False
         return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    @property
+    def followed_trades(self):
+        return Trade.query.join(Follow, Follow.followed_id == Trade.user_id).filter(Follow.follower_id == self.id)
+
+    @staticmethod
+    def add_self_follows():
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+                db.session.commit()
 
 
 @login_manager.user_loader
