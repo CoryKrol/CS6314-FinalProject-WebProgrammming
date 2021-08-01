@@ -1,11 +1,11 @@
 from flask import abort, current_app, render_template, flash, redirect, request, url_for
-from flask_login import login_required
+from flask_login import current_user, login_required
 
 from . import stocks
 from .forms import AddStockForm, EditStockForm
 from .. import db
 from ..decorators import admin_required
-from ..models import Stock, Trade
+from ..models import Stock, Trade, Watch
 
 
 @stocks.route('/add', methods=['GET', 'POST'])
@@ -68,3 +68,35 @@ def stock_info(ticker):
         error_out=False)
     trades = pagination.items
     return render_template('stocks/stock_info.html', stock=stock, trades=trades, pagination=pagination)
+
+
+@stocks.route('/watch/<ticker>')
+@login_required
+def watch(ticker):
+    stock = Stock.query.filter_by(ticker=ticker).first()
+    if stock is None:
+        flash('Invalid ticker.')
+        return redirect(url_for('.index'))
+    if current_user.is_watching(stock):
+        flash('Already watching stock.')
+        return redirect(url_for('.stock_info', ticker=ticker))
+    current_user.watch(stock)
+    db.session.commit()
+    flash('You are now watching %s.' % stock.name)
+    return redirect(url_for('.stock_info', ticker=ticker))
+
+
+@stocks.route('/unwatch/<ticker>')
+@login_required
+def unwatch(ticker):
+    stock = Stock.query.filter_by(ticker=ticker).first()
+    if stock is None:
+        flash('Invalid ticker.')
+        return redirect(url_for('.index'))
+    if not current_user.is_watching(stock):
+        flash('Not watching stock.')
+        return redirect(url_for('.stock_info', ticker=ticker))
+    current_user.unwatch(stock)
+    db.session.commit()
+    flash('You are not watching %s anymore.' % stock.name)
+    return redirect(url_for('.stock_info', ticker=ticker))

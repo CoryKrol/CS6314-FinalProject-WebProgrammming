@@ -2,13 +2,13 @@
         {% for trade in trades %}
         <li class="trade">
             <div class="trade-thumbnail">
-                <a href="{{ url_for('main.user_profile', username=trade.user.username) }}">
+                <a href="{{ url_for('users.user_profile', username=trade.user.username) }}">
                     <img class="img-rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
                 </a>
             </div>
             <div class="trade-content">
                 <div class="trade-date">{{ moment(trade.timestamp).fromNow() }}</div>
-                <div class="trade-user"><a href="{{ url_for('main.user_profile', username=trade.user.username) }}">{{ trade.user.username }}</a></div>
+                <div class="trade-user"><a href="{{ url_for('users.user_profile', username=trade.user.username) }}">{{ trade.user.username }}</a></div>
                 <div class="trade-ticker"><a href="{{ url_for('stocks.stock_info', ticker=trade.stock.ticker) }}">{{ trade.stock.ticker }}</a></div>
                 <div class="trade-price">{{ trade.price }}</div>
                 <div class="trade-quantity">{{ trade.quantity }}</div>
