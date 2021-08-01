@@ -1,14 +1,14 @@
-<table class="table table-bordered">
-    <thead class="bg-success">
-    <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Ticker</th>
-        <th scope="col">Last Trade</th>
-        <th scope="col">Shares</th>
-        <th scope="col">Purchase Price</th>
-        <th scope="col">Current Price</th>
-        <th scope="col">Gain/Loss Since Purchase</th>
-        <th scope="col">Gain/Loss Since Purchase (%)</th>
+<table class="table table-bordered text-center">
+    <thead>
+    <tr class="bg-success">
+        <th class="text-center" scope="col">Name</th>
+        <th class="text-center" scope="col">Ticker</th>
+        <th class="text-center" scope="col">Last<br> Trade</th>
+        <th class="text-center" scope="col">Shares</th>
+        <th class="text-center" scope="col">Purchase<br> Price</th>
+        <th class="text-center" scope="col">Current<br> Price</th>
+        <th class="text-center" scope="col">Gain/Loss<br> Since Purchase</th>
+        <th class="text-center" scope="col">Gain/Loss<br> Since Purchase (%)</th>
     </tr>
     </thead>
     <tbody>
@@ -16,27 +16,27 @@
     <tr>
         <td>{{ stock.name }}</td>
         <td>{{ stock.ticker }}</td>
-        <td>{{ stock.lastTrade }}</td>
+        <td>${{ stock.lastTrade }}</td>
         <td>{{ stock.shares }}</td>
-        <td>{{ stock.purchasePrice }}</td>
-        <td>{{ stock.currentPrice }}</td>
+        <td>${{ stock.purchasePrice }}</td>
+        <td>${{ stock.currentPrice }}</td>
         {% set gainLoss = stock.currentPrice|float - stock.purchasePrice|float %}
-        <td>{{ gainLoss }}</td>
+        <td class="{% if gainLoss > 0 %} text-success {% else %} text-danger {% endif %}">{{ "${:,.2f}".format(gainLoss) }}</td>
         {% set gainLossPercentage = stock.currentPrice|float / stock.purchasePrice|float - 1 %}
-        <td>{{ gainLossPercentage|round(2, 'common') }}%</td>
+        <td class="{% if gainLoss > 0 %} text-success {% else %} text-danger {% endif %}">{{ gainLossPercentage|round(2, 'common') }}%</td>
     </tr>
     {% endfor %}
     </tbody>
-    <tfoot class="bg-success">
-    <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Ticker</th>
-        <th scope="col">Last Trade</th>
-        <th scope="col">Shares</th>
-        <th scope="col">Purchase Price</th>
-        <th scope="col">Current Price</th>
-        <th scope="col">Gain/Loss Since Purchase</th>
-        <th scope="col">Gain/Loss Since Purchase (%)</th>
+    <tfoot>
+    <tr class="bg-success">
+        <th class="text-center" scope="col">Name</th>
+        <th class="text-center" scope="col">Ticker</th>
+        <th class="text-center" scope="col">Last<br> Trade</th>
+        <th class="text-center" scope="col">Shares</th>
+        <th class="text-center" scope="col">Purchase<br> Price</th>
+        <th class="text-center" scope="col">Current<br> Price</th>
+        <th class="text-center" scope="col">Gain/Loss<br> Since Purchase</th>
+        <th class="text-center" scope="col">Gain/Loss<br> Since Purchase (%)</th>
     </tr>
     </tfoot>
 </table>

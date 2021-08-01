@@ -101,10 +101,10 @@ watchListStocks = [
         {
         "name": "J",
         "ticker": "J",
-        "lastTrade": "1500.00",
+        "lastTrade": "500.00",
         "shares": "2000",
         "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
+        "currentPrice": "525.00",
         "gainLossSincePurchase": "600",
         "gainLossSincePurchasePercentage": "60%"
     }
