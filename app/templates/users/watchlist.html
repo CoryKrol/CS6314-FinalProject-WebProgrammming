@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+{% block title %}Hedgehog - {{ title }} {{ user.username }}{% endblock %}
+{% block page_content %}
+    <div class="page-header">
+        <h1>{{ title }} {{ user.username }}</h1>
+    </div>
+    <table class="table table-hover followers">
+        <thead><tr><th>Stock</th><th>Since</th><th>Delete</th></tr></thead>
+        {% for watch in watches %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('stocks.stock_info', ticker = watch.stock.ticker) }}">
+                        <img class="img-rounded" src="{{ watch.stock.name }}">
+                        {{ watch.stock.name }}
+                    </a>
+                </td>
+                <td>{{ moment(watch.timestamp).format('L') }}</td>
+                <td><a href="{{ url_for('stocks.unwatch', ticker=watch.stock.ticker) }}" class="btn btn-primary">Delete</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+    <div class="pagination">
+        {{ macros.pagination_widget(pagination, endpoint, username = user.username) }}
+    </div>
+{% endblock %}

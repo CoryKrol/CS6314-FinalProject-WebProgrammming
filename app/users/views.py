@@ -91,6 +91,7 @@ def unfollow(username):
 
 
 @users.route('/followers/<username>')
+@login_required
 def followers(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -106,6 +107,7 @@ def followers(username):
 
 
 @users.route('/followed_by/<username>')
+@login_required
 def followed_by(username):
     user = User.query.filter_by(username=username).first()
     if user is None:
@@ -113,14 +115,31 @@ def followed_by(username):
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
     pagination = user.followed.paginate(page, per_page=current_app.config['FOLLOWERS_PER_PAGE'], error_out=False)
-    follows = [{'user': item.followed, 'timestamp': item.timestamp}
-               for item in pagination.items]
-    return render_template('users/followers.html', user=user, title="Followed by",
-                           endpoint='.followed_by', pagination=pagination,
+    follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]
+    return render_template('users/followers.html',
+                           user=user,
+                           title="Followed by",
+                           endpoint='.followed_by',
+                           pagination=pagination,
                            follows=follows)
 
 
+@users.route('/watchlist/')
+@login_required
+def watchlist():
+    page = request.args.get('page', 1, type=int)
+    pagination = current_user.watches.paginate(page, per_page=current_app.config['WATCHLIST_PER_PAGE'], error_out=False)
+    watches = [{'stock': item.stock, 'timestamp': item.timestamp} for item in pagination.items]
+    return render_template('users/watchlist.html',
+                           user=current_user,
+                           title='Watchlist',
+                           endpoint='.watchlist',
+                           pagination=pagination,
+                           watches=watches)
+
+
 @users.route('/<username>')
+@login_required
 def user_profile(username):
     user = User.query.filter_by(username=username).first()
     if user is None:

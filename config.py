@@ -16,6 +16,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FOLLOWERS_PER_PAGE = os.environ.get('FOLLOWERS_PER_PAGE') or 50
     TRADES_PER_PAGE = os.environ.get('TRADES_PER_PAGE') or 10
+    WATCHLIST_PER_PAGE = os.environ.get('WATCHLIST_PER_PAGE') or 10
 
     @staticmethod
     def init_app(app):
