@@ -1,5 +1,5 @@
 <table class="table table-bordered">
-    <thead>
+    <thead class="bg-success">
     <tr>
         <th scope="col">Name</th>
         <th scope="col">Ticker</th>
@@ -20,12 +20,14 @@
         <td>{{ stock.shares }}</td>
         <td>{{ stock.purchasePrice }}</td>
         <td>{{ stock.currentPrice }}</td>
-        <td>{{ stock.gainLossSincePurchase }}</td>
-        <td>{{ stock.gainLossSincePurchasePercentage }}</td>
+        {% set gainLoss = stock.currentPrice|float - stock.purchasePrice|float %}
+        <td>{{ gainLoss }}</td>
+        {% set gainLossPercentage = stock.currentPrice|float / stock.purchasePrice|float - 1 %}
+        <td>{{ gainLossPercentage|round(2, 'common') }}%</td>
     </tr>
     {% endfor %}
     </tbody>
-    <tfoot>
+    <tfoot class="bg-success">
     <tr>
         <th scope="col">Name</th>
         <th scope="col">Ticker</th>

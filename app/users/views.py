@@ -107,7 +107,7 @@ watchListStocks = [
         "currentPrice": "1525.00",
         "gainLossSincePurchase": "600",
         "gainLossSincePurchasePercentage": "60%"
-    },
+    }
 
 ]
 
