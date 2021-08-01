@@ -1,7 +1,9 @@
 import unittest
 import time
+from datetime import datetime
+
 from app import create_app, db
-from app.models import AnonymousUser, Permission, Role, User
+from app.models import AnonymousUser, Follow, Permission, Role, User
 
 
 class ModelUserTest(unittest.TestCase):
@@ -26,7 +28,7 @@ class ModelUserTest(unittest.TestCase):
         with self.assertRaises(AttributeError):
             user.password()
 
-    def test_password_verification(self):
+    def test_password_verifipasswordion(self):
         user = User(password='password')
         self.assertTrue(user.verify_password('password'))
         self.assertFalse(user.verify_password('pa$$w0rd'))
@@ -94,7 +96,7 @@ class ModelUserTest(unittest.TestCase):
         self.assertFalse(user2.change_email(token))
         self.assertTrue(user2.email == 'student@utdallas.edu')
 
-    def test_duplicate_email_change_token(self):
+    def test_duplicate_password_email_change_token(self):
         user1 = User(email='ta@utdallas.edu', password='password')
         user2 = User(email='student@utdallas.edu', password='pa$$w0rd')
         db.session.add(user1)
@@ -139,3 +141,77 @@ class ModelUserTest(unittest.TestCase):
         self.assertFalse(user.can(Permission.WRITE))
         self.assertFalse(user.can(Permission.MODERATE))
         self.assertFalse(user.can(Permission.ADMIN))
+
+    def test_timestamps(self):
+        user = User(password='password')
+        db.session.add(user)
+        db.session.commit()
+        self.assertTrue(
+            (datetime.utcnow() - user.member_since).total_seconds() < 3)
+        self.assertTrue(
+            (datetime.utcnow() - user.last_seen).total_seconds() < 3)
+
+    def test_ping(self):
+        user = User(password='password')
+        db.session.add(user)
+        db.session.commit()
+        time.sleep(2)
+        last_seen_before = user.last_seen
+        user.ping()
+        self.assertTrue(user.last_seen > last_seen_before)
+
+    def test_gravatar(self):
+        user = User(email='student@utdallas.edu', password='password')
+        with self.app.test_request_context('/'):
+            gravatar = user.gravatar()
+            gravatar_256 = user.gravatar(size=256)
+            gravatar_pg = user.gravatar(rating='pg')
+            gravatar_retro = user.gravatar(default='retro')
+        self.assertTrue('https://secure.gravatar.com/avatar/390415e449db6f9332c93dbb50a5f10d' in gravatar)
+        self.assertTrue('s=256' in gravatar_256)
+        self.assertTrue('r=pg' in gravatar_pg)
+        self.assertTrue('d=retro' in gravatar_retro)
+
+    def test_follows(self):
+        # Create users and assert user1 not following user2
+        user1 = User(email='student@utdallas.edu', password='password')
+        user2 = User(email='ta@utdallas.edu', password='pa$$w0rd')
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.commit()
+        self.assertFalse(user1.is_following(user2))
+        self.assertFalse(user1.is_followed_by(user2))
+
+        # Assert user1 followed user2 with the correct timestamp recording it
+        timestamp_before = datetime.utcnow()
+        user1.follow(user2)
+        db.session.add(user1)
+        db.session.commit()
+        timestamp_after = datetime.utcnow()
+        self.assertTrue(user1.is_following(user2))
+        self.assertFalse(user1.is_followed_by(user2))
+        self.assertTrue(user2.is_followed_by(user1))
+        self.assertTrue(user1.followed.count() == 2)
+        self.assertTrue(user2.followers.count() == 2)
+        follow = user1.followed.all()[-1]
+        self.assertTrue(follow.followed == user2)
+        self.assertTrue(timestamp_before <= follow.timestamp <= timestamp_after)
+        follow = user2.followers.all()[0]
+        self.assertTrue(follow.follower == user1)
+
+        # Assert user1 unfollowed user2
+        user1.unfollow(user2)
+        db.session.add(user1)
+        db.session.commit()
+        self.assertTrue(user1.followed.count() == 1)
+        self.assertTrue(user2.followers.count() == 1)
+        self.assertTrue(Follow.query.count() == 2)
+
+        # Assert when user is deleted that the follow record is deleted
+        user2.follow(user1)
+        db.session.add(user1)
+        db.session.add(user2)
+        db.session.commit()
+        db.session.delete(user2)
+        db.session.commit()
+        self.assertTrue(Follow.query.count() == 1)

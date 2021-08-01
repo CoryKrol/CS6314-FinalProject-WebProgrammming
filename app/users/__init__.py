@@ -1,8 +1,6 @@
 from flask import Blueprint
 
 users = Blueprint('users', __name__)
-
-# Import modules here to avoid circular dependencies until after main is defined
 from . import views
 from ..models import Permission
 

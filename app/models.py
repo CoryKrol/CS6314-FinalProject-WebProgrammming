@@ -11,6 +11,7 @@ class AnonymousUser(AnonymousUserMixin):
     """
     Class to hold the permission of unauthenticated users so we can check permissions without having to do a login check
     """
+
     def can(self, permissions):
         return False
 
@@ -84,6 +85,15 @@ class Role(db.Model):
         return self.permissions & perm == perm
 
 
+# class Favorite(db.Model):
+#     __tablename__ = 'favorites'
+#     user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+#                         primary_key=True)
+#     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
+#                          primary_key=True)
+#     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class Stock(db.Model):
     __tablename__ = 'stocks'
     id = db.Column(db.Integer, primary_key=True)
@@ -94,6 +104,11 @@ class Stock(db.Model):
     year_high = db.Column(db.Float)
     year_low = db.Column(db.Float)
     trades = db.relationship('Trade', backref='stock', lazy='dynamic')
+    # users = db.relationship('Favorite',
+    #                         foreign_keys=[Favorite.stock_id],
+    #                         backref=db.backref('stock', lazy='joined'),
+    #                         lazy='dynamic',
+    #                         cascade='all, delete-orphan')
 
 
 class Trade(db.Model):
@@ -104,6 +119,15 @@ class Trade(db.Model):
     timestamp = db.Column(db.DateTime(), index=True, default=datetime.utcnow)
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)
+
+
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                            primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class User(UserMixin, db.Model):
@@ -121,6 +145,21 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     trades = db.relationship('Trade', backref='user', lazy='dynamic')
+    # stocks = db.relationship('Favorite',
+    #                          foreign_keys=[Favorite.user_id],
+    #                          backref=db.backref('user', lazy='joined'),
+    #                          lazy='dynamic',
+    #                          cascade='all, delete-orphan')
+    followed = db.relationship('Follow',
+                               foreign_keys=[Follow.follower_id],
+                               backref=db.backref('follower', lazy='joined'),
+                               lazy='dynamic',
+                               cascade='all, delete-orphan')
+    followers = db.relationship('Follow',
+                                foreign_keys=[Follow.followed_id],
+                                backref=db.backref('followed', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -131,6 +170,7 @@ class User(UserMixin, db.Model):
                 self.role = Role.query.filter_by(default=True).first()
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = self.gravatar_hash()
+        self.follow(self)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -213,15 +253,15 @@ class User(UserMixin, db.Model):
 
     def ping(self):
         """Called by @auth.before_app_request to update last_login field"""
-        self.last_seen = datetime.now()
+        self.last_seen = datetime.utcnow()
         db.session.add(self)
         db.session.commit()
 
+    def gravatar_hash(self):
+        return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+
     def gravatar(self, size=100, default='identicon', rating='g'):
-        if request.is_secure:
-            url = 'https://secure.gravatar.com/avatar'
-        else:
-            url = 'http://www.gravatar.com/avatar'
+        url = 'https://secure.gravatar.com/avatar'
         hash = self.avatar_hash or self.gravatar_hash()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url=url,
                                                                      hash=hash,
@@ -229,8 +269,38 @@ class User(UserMixin, db.Model):
                                                                      default=default,
                                                                      rating=rating)
 
-    def gravatar_hash(self):
-        return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+    def follow(self, user):
+        if not self.is_following(user):
+            follow = Follow(follower=self, followed=user)
+            db.session.add(follow)
+
+    def unfollow(self, user):
+        follow = self.followed.filter_by(followed_id=user.id).first()
+        if follow:
+            db.session.delete(follow)
+
+    def is_following(self, user):
+        if user.id is None:
+            return False
+        return self.followed.filter_by(followed_id=user.id).first() is not None
+
+    def is_followed_by(self, user):
+        if user.id is None:
+            return False
+        return self.followers.filter_by(follower_id=user.id).first() is not None
+
+    @property
+    def followed_trades(self):
+        return Trade.query.join(Follow, Follow.followed_id == Trade.user_id).filter(Follow.follower_id == self.id)
+
+    @staticmethod
+    def add_self_follows():
+        """Used to upgrade existing database instances to the new model with user following"""
+        for user in User.query.all():
+            if not user.is_following(user):
+                user.follow(user)
+                db.session.add(user)
+                db.session.commit()
 
 
 @login_manager.user_loader

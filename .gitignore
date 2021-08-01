@@ -91,3 +91,6 @@ gaenv_lib/
 appengine_config.py
 
 {"mode":"full","isActive":false}
+
+set-env-var.ps1
+set-env-var.sh

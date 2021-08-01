@@ -9,7 +9,7 @@ if os.environ.get('FLASK_COVERAGE'):
     COV.start()
 
 from app import create_app, db
-from app.models import Permission, Role, Stock, Trade, User
+from app.models import Follow, Permission, Role, Stock, Trade, User
 from flask_migrate import Migrate
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
@@ -18,7 +18,7 @@ migrate = Migrate(app, db)
 
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, Trade=Trade, Stock=Stock, User=User, Permission=Permission, Role=Role)
+    return dict(db=db, Follow=Follow, Permission=Permission, Role=Role, Stock=Stock, Trade=Trade, User=User)
 
 
 @app.cli.command()
