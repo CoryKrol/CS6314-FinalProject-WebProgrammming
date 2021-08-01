@@ -85,13 +85,13 @@ class Role(db.Model):
         return self.permissions & perm == perm
 
 
-# class Favorite(db.Model):
-#     __tablename__ = 'favorites'
-#     user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-#                         primary_key=True)
-#     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
-#                          primary_key=True)
-#     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+class Watch(db.Model):
+    __tablename__ = 'watches'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+                        primary_key=True)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
+                         primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class Stock(db.Model):
@@ -104,11 +104,16 @@ class Stock(db.Model):
     year_high = db.Column(db.Float)
     year_low = db.Column(db.Float)
     trades = db.relationship('Trade', backref='stock', lazy='dynamic')
-    # users = db.relationship('Favorite',
-    #                         foreign_keys=[Favorite.stock_id],
-    #                         backref=db.backref('stock', lazy='joined'),
-    #                         lazy='dynamic',
-    #                         cascade='all, delete-orphan')
+    users_watching = db.relationship('Watch',
+                                     foreign_keys=[Watch.stock_id],
+                                     backref=db.backref('stock', lazy='joined'),
+                                     lazy='dynamic',
+                                     cascade='all, delete-orphan')
+
+    def is_watched_by(self, user):
+        if user.id is None:
+            return False
+        return self.users_watching.filter_by(user_id=user.id).first() is not None
 
 
 class Trade(db.Model):
@@ -145,11 +150,11 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     trades = db.relationship('Trade', backref='user', lazy='dynamic')
-    # stocks = db.relationship('Favorite',
-    #                          foreign_keys=[Favorite.user_id],
-    #                          backref=db.backref('user', lazy='joined'),
-    #                          lazy='dynamic',
-    #                          cascade='all, delete-orphan')
+    watches= db.relationship('Watch',
+                                foreign_keys=[Watch.user_id],
+                                backref=db.backref('user', lazy='joined'),
+                                lazy='dynamic',
+                                cascade='all, delete-orphan')
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
@@ -289,6 +294,21 @@ class User(UserMixin, db.Model):
             return False
         return self.followers.filter_by(follower_id=user.id).first() is not None
 
+    def is_watching(self, stock):
+        if stock.id is None:
+            return False
+        return self.watches.filter_by(stock_id=stock.id).first() is not None
+
+    def watch(self, stock):
+        if not self.is_watching(stock):
+            watch = Watch(user=self, stock=stock)
+            db.session.add(watch)
+
+    def unwatch(self, stock):
+        watch = self.watches.filter_by(stock_id=stock.id).first()
+        if watch:
+            db.session.delete(watch)
+
     @property
     def followed_trades(self):
         return Trade.query.join(Follow, Follow.followed_id == Trade.user_id).filter(Follow.follower_id == self.id)
@@ -301,6 +321,19 @@ class User(UserMixin, db.Model):
                 user.follow(user)
                 db.session.add(user)
                 db.session.commit()
+
+    def generate_auth_token(self, expiration):
+        serializer = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
+        return serializer.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        serializer = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = serializer.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
 
 
 @login_manager.user_loader

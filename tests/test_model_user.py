@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 from app import create_app, db
-from app.models import AnonymousUser, Follow, Permission, Role, User
+from app.models import AnonymousUser, Follow, Permission, Role, Stock, User, Watch
 
 
 class ModelUserTest(unittest.TestCase):
@@ -172,7 +172,7 @@ class ModelUserTest(unittest.TestCase):
         self.assertTrue('r=pg' in gravatar_pg)
         self.assertTrue('d=retro' in gravatar_retro)
 
-    def test_follows(self):
+    def test_follow(self):
         # Create users and assert user1 not following user2
         user1 = User(email='student@utdallas.edu', password='password')
         user2 = User(email='ta@utdallas.edu', password='pa$$w0rd')
@@ -215,3 +215,46 @@ class ModelUserTest(unittest.TestCase):
         db.session.delete(user2)
         db.session.commit()
         self.assertTrue(Follow.query.count() == 1)
+
+    def test_watch(self):
+        # Create users and assert user1 not following user2
+        user = User(email='student@utdallas.edu', password='password')
+        stock = Stock(name='Apple', ticker='AAPL', sector="Tech", is_active=True, year_high=1000.0, year_low=100.0)
+        db.session.add(user)
+        db.session.add(stock)
+        db.session.commit()
+        self.assertFalse(user.is_watching(stock))
+        self.assertFalse(stock.is_watched_by(user))
+
+        # Assert user watched stock with timestamp recording it
+        timestamp_before = datetime.utcnow()
+        user.watch(stock)
+        db.session.add(user)
+        db.session.commit()
+        timestamp_after = datetime.utcnow()
+        self.assertTrue(user.is_watching(stock))
+        self.assertTrue(stock.is_watched_by(user))
+        self.assertTrue(user.watches.count() == 1)
+        self.assertTrue(stock.users_watching.count() == 1)
+        watch = user.watches.all()[-1]
+        self.assertTrue(watch.stock == stock)
+        self.assertTrue(timestamp_before <= watch.timestamp <= timestamp_after)
+        watching = stock.users_watching.all()[-1]
+        self.assertTrue(watching.user == user)
+
+        # Assert user1 unfollowed user2
+        user.unwatch(stock)
+        db.session.add(user)
+        db.session.commit()
+        self.assertTrue(user.watches.count() == 0)
+        self.assertTrue(stock.users_watching.count() == 0)
+        self.assertTrue(Watch.query.count() == 0)
+
+        # Assert when user is deleted that the watch record is deleted
+        user.watch(stock)
+        db.session.add(user)
+        db.session.add(stock)
+        db.session.commit()
+        db.session.delete(user)
+        db.session.commit()
+        self.assertTrue(Watch.query.count() == 0)
