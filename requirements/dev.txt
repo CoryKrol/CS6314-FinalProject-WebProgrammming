@@ -1,2 +1,9 @@
 -r common.txt
+certifi
+chardet
 faker
+httpie
+idna
+Pygments
+requests
+urllib3

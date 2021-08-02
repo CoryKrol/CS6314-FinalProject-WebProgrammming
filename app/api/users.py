@@ -3,51 +3,51 @@ from . import api
 from ..models import User, Trade
 
 
-@api.route('/users/<int:id>')
-def get_user(id):
-    user = User.query.get_or_404(id)
+@api.route('/users/<int:user_id>')
+def get_user(user_id):
+    user = User.query.get_or_404(user_id)
     return jsonify(user.to_json())
 
 
-@api.route('/users/<int:id>/posts/')
-def get_user_posts(id):
-    user = User.query.get_or_404(id)
+@api.route('/users/<int:user_id>/trades/')
+def get_user_trades(user_id):
+    user = User.query.get_or_404(user_id)
     page = request.args.get('page', 1, type=int)
-    pagination = user.posts.order_by(Post.timestamp.desc()).paginate(
-        page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],
+    pagination = user.trades.order_by(Trade.timestamp.desc()).paginate(
+        page, per_page=current_app.config['TRADES_PER_PAGE'],
         error_out=False)
-    posts = pagination.items
+    trades = pagination.items
     prev = None
     if pagination.has_prev:
-        prev = url_for('api.get_user_posts', id=id, page=page-1)
-    next = None
+        prev = url_for('api.get_user_trades', id=id, page=page-1)
+    next_page = None
     if pagination.has_next:
-        next = url_for('api.get_user_posts', id=id, page=page+1)
+        next_page = url_for('api.get_user_trades', id=id, page=page+1)
     return jsonify({
-        'posts': [post.to_json() for post in posts],
+        'trades': [trade.to_json() for trade in trades],
         'prev': prev,
-        'next': next,
+        'next': next_page,
         'count': pagination.total
     })
 
 
-@api.route('/users/<int:id>/timeline/')
-def get_user_followed_trades(id):
-    user = User.query.get_or_404(id)
+@api.route('/users/<int:user_id>/timeline/')
+def get_user_followed_trades(user_id):
+    user = User.query.get_or_404(user_id)
     page = request.args.get('page', 1, type=int)
-    pagination = user.followed_posts.order_by(Trade.timestamp.desc()).paginate(
+    pagination = user.followed_trades.order_by(Trade.timestamp.desc()).paginate(
         page, per_page=current_app.config['TRADES_PER_PAGE'],
         error_out=False)
     trades = pagination.items
     prev = None
     if pagination.has_prev:
         prev = url_for('api.get_user_followed_trades', id=id, page=page-1)
-    next = None
+    next_page = None
     if pagination.has_next:
-        next = url_for('api.get_user_followed_trades', id=id, page=page+1)
+        next_page = url_for('api.get_user_followed_trades', id=id, page=page+1)
     return jsonify({
-        'posts': [trade.to_json() for trade in trades],
+        'trades': [trade.to_json() for trade in trades],
         'prev': prev,
-        'next': next,
+        'next': next_page,
         'count': pagination.total
     })

@@ -28,7 +28,7 @@ class ModelUserTest(unittest.TestCase):
         with self.assertRaises(AttributeError):
             user.password()
 
-    def test_password_verifipasswordion(self):
+    def test_password_verify(self):
         user = User(password='password')
         self.assertTrue(user.verify_password('password'))
         self.assertFalse(user.verify_password('pa$$w0rd'))
@@ -258,3 +258,14 @@ class ModelUserTest(unittest.TestCase):
         db.session.delete(user)
         db.session.commit()
         self.assertTrue(Watch.query.count() == 0)
+
+    def test_to_json(self):
+        user = User(email='student@utdallas.edu', password='password')
+        db.session.add(user)
+        db.session.commit()
+        with self.app.test_request_context('/'):
+            json_user = user.to_json()
+        expected_keys = ['url', 'username', 'member_since', 'last_seen',
+                         'trades_url', 'followed_trades_url', 'trade_count']
+        self.assertEqual(sorted(json_user.keys()), sorted(expected_keys))
+        self.assertEqual('/api/v1/users/' + str(user.id), json_user['url'])
