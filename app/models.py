@@ -2,11 +2,14 @@ import hashlib
 from . import db, login_manager
 from .exceptions import ValidationError
 from datetime import datetime
-from flask import current_app, request, url_for
+from flask import abort, current_app, request, url_for
 from flask_login import AnonymousUserMixin, UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from typing import Final
 from werkzeug.security import generate_password_hash, check_password_hash
 
+CASCADE: Final = 'all, delete-orphan'
+USERS_ID: Final = 'users.id'
 
 class AnonymousUser(AnonymousUserMixin):
     """
@@ -88,11 +91,34 @@ class Role(db.Model):
 
 class Watch(db.Model):
     __tablename__ = 'watches'
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID),
                         primary_key=True)
     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
                          primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_json(self):
+        return {
+            'url': url_for('api.user_unwatch_stock', username=self.user.username, ticker=self.stock.ticker),
+            'user': self.user.username,
+            'stock': self.stock.ticker
+        }
+
+    @staticmethod
+    def from_json(json):
+        username = json.get('user')
+        if username is None or username == '':
+            raise ValidationError('new watchlist entry does not have a username')
+        ticker = json.get('stock')
+        if ticker is None or ticker == '':
+            raise ValidationError('new watchlist entry does not have a stock ticker')
+        user = User.find_first_by_username(username=username)
+        if user is None:
+            raise ValidationError('user does not exist')
+        stock = Stock.query.filter_by(ticker=ticker).first()
+        if stock is None:
+            raise ValidationError('stock does not exist')
+        return Watch(user_id=user.id, stock_id=stock.id)
 
 
 class Stock(db.Model):
@@ -109,7 +135,7 @@ class Stock(db.Model):
                                      foreign_keys=[Watch.stock_id],
                                      backref=db.backref('stock', lazy='joined'),
                                      lazy='dynamic',
-                                     cascade='all, delete-orphan')
+                                     cascade=CASCADE)
 
     def is_watched_by(self, user):
         if user.id is None:
@@ -157,7 +183,7 @@ class Trade(db.Model):
     __tablename__ = 'trades'
     id = db.Column(db.Integer, primary_key=True)
     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID))
     timestamp = db.Column(db.DateTime(), index=True, default=datetime.utcnow)
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)
@@ -189,7 +215,7 @@ class Trade(db.Model):
         stock = Stock.query.filter_by(ticker=ticker).first()
         if stock is None:
             raise ValidationError('stock does not exist')
-        user = User.query.filter_by(username=username).first()
+        user = User.find_first_by_username(username=username)
         if user is None:
             raise ValidationError('user does not exist')
 
@@ -201,9 +227,9 @@ class Trade(db.Model):
 
 class Follow(db.Model):
     __tablename__ = 'follows'
-    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+    followed_id = db.Column(db.Integer, db.ForeignKey(USERS_ID),
                             primary_key=True)
-    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+    follower_id = db.Column(db.Integer, db.ForeignKey(USERS_ID),
                             primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -227,17 +253,17 @@ class User(UserMixin, db.Model):
                               foreign_keys=[Watch.user_id],
                               backref=db.backref('user', lazy='joined'),
                               lazy='dynamic',
-                              cascade='all, delete-orphan')
+                              cascade=CASCADE)
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
                                lazy='dynamic',
-                               cascade='all, delete-orphan')
+                               cascade=CASCADE)
     followers = db.relationship('Follow',
                                 foreign_keys=[Follow.followed_id],
                                 backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic',
-                                cascade='all, delete-orphan')
+                                cascade=CASCADE)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -367,6 +393,16 @@ class User(UserMixin, db.Model):
             return False
         return self.followers.filter_by(follower_id=user.id).first() is not None
 
+    def get_followers_pagination(self, page_request):
+        return self.follows.paginate(page_request.args.get('page', 1, type=int),
+                                     per_page=current_app.config['FOLLOWERS_PER_PAGE'],
+                                     error_out=False)
+
+    def get_followed_pagination(self, page_request):
+        return self.followed.paginate(page_request.args.get('page', 1, type=int),
+                                      per_page=current_app.config['FOLLOWERS_PER_PAGE'],
+                                      error_out=False)
+
     def is_watching(self, stock):
         if stock.id is None:
             return False
@@ -376,11 +412,13 @@ class User(UserMixin, db.Model):
         if not self.is_watching(stock):
             watch = Watch(user=self, stock=stock)
             db.session.add(watch)
+            db.session.commit()
 
     def unwatch(self, stock):
         watch = self.watches.filter_by(stock_id=stock.id).first()
         if watch:
             db.session.delete(watch)
+            db.session.commit()
 
     @property
     def followed_trades(self):
@@ -408,17 +446,27 @@ class User(UserMixin, db.Model):
             return None
         return User.query.get(data['id'])
 
+    @staticmethod
+    def find_first_by_username(username):
+        return User.query.filter_by(username=username).first()
+
+    @staticmethod
+    def find_by_username_or_404(username):
+        user = User.find_first_by_username(username=username)
+        if user is None:
+            abort(404)
+        return user
+
     def to_json(self):
         return {
-            'url': url_for('api.get_user', user_id=self.id),
+            'url': url_for('api.get_user', username=self.username),
             'username': self.username,
             'member_since': self.member_since,
             'last_seen': self.last_seen,
-            'trades_url': url_for('api.get_user_trades', user_id=self.id),
-            'followed_trades_url': url_for('api.get_user_followed_trades', user_id=self.id),
+            'trades_url': url_for('api.get_user_trades', username=self.username),
+            'followed_trades_url': url_for('api.get_user_followed_trades', username=self.username),
             'trade_count': self.trades.count()
         }
-
 
 @login_manager.user_loader
 def load_user(user_id):

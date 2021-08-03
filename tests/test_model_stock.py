@@ -1,9 +1,7 @@
 import unittest
-import time
-from datetime import datetime
 
 from app import create_app, db
-from app.models import AnonymousUser, Follow, Permission, Role, Stock, User
+from app.models import Role, Stock, User
 
 
 class ModelStockTest(unittest.TestCase):

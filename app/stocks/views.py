@@ -1,11 +1,14 @@
 from flask import abort, current_app, render_template, flash, redirect, request, url_for
 from flask_login import current_user, login_required
+from typing import Final
 
 from . import stocks
 from .forms import AddStockForm, EditStockForm
 from .. import db
 from ..decorators import admin_required
-from ..models import Stock, Trade, Watch
+from ..models import Stock, Trade
+
+STOCK_INFO = '.stock_info'
 
 
 @stocks.route('/add', methods=['GET', 'POST'])
@@ -23,7 +26,7 @@ def add_stock():
         db.session.add(new_stock)
         db.session.commit()
         flash('Profile for ' + new_stock.name + ' created successfully.')
-        return redirect(url_for('.stock_info', ticker=new_stock.ticker))
+        return redirect(url_for(STOCK_INFO, ticker=new_stock.ticker))
     return render_template('stocks/edit_stock.html', form=form)
 
 
@@ -45,7 +48,7 @@ def edit_stock(ticker):
         db.session.add(stock)
         db.session.commit()
         flash('Profile for ' + stock.name + ' updated successfully.')
-        return redirect(url_for('.stock_info', ticker=stock.ticker))
+        return redirect(url_for(STOCK_INFO, ticker=stock.ticker))
     form.ticker.data = stock.ticker
     form.name.data = stock.name
     form.active.data = stock.is_active
@@ -79,11 +82,11 @@ def watch(ticker):
         return redirect(url_for('.index'))
     if current_user.is_watching(stock):
         flash('Already watching stock.')
-        return redirect(url_for('.stock_info', ticker=ticker))
+        return redirect(url_for(STOCK_INFO, ticker=ticker))
     current_user.watch(stock)
     db.session.commit()
     flash('You are now watching %s.' % stock.name)
-    return redirect(url_for('.stock_info', ticker=ticker))
+    return redirect(url_for(STOCK_INFO, ticker=ticker))
 
 
 @stocks.route('/unwatch/<ticker>')
@@ -95,8 +98,8 @@ def unwatch(ticker):
         return redirect(url_for('.index'))
     if not current_user.is_watching(stock):
         flash('Not watching stock.')
-        return redirect(url_for('.stock_info', ticker=ticker))
+        return redirect(url_for(STOCK_INFO, ticker=ticker))
     current_user.unwatch(stock)
     db.session.commit()
     flash('You are not watching %s anymore.' % stock.name)
-    return redirect(url_for('.stock_info', ticker=ticker))
+    return redirect(url_for(STOCK_INFO, ticker=ticker))

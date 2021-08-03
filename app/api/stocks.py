@@ -2,6 +2,7 @@ from flask import abort, jsonify, request, url_for, current_app
 from .. import db
 from ..models import Stock, Permission
 from . import api
+from .auth import auth
 from .decorators import permission_required
 from ..exceptions import ValidationError
 
@@ -37,12 +38,12 @@ def get_stock(ticker):
 @permission_required(Permission.ADMIN)
 def new_stock():
     stock = Stock.from_json(request.json)
-    if Stock.query.filter_by(ticker=stock.ticker) is not None:
+    if Stock.query.filter_by(ticker=stock.ticker).first() is not None:
         raise ValidationError('Stock with %s already exists.' % stock.ticker)
     db.session.add(stock)
     db.session.commit()
     return jsonify(stock.to_json()), 201, \
-        {'Location': url_for('api.get_stock', id=stock.id)}
+        {'Location': url_for('api.get_stock', ticker=stock.ticker)}
 
 
 @api.route('/stocks/<ticker>', methods=['PUT'])
@@ -53,7 +54,7 @@ def edit_stock(ticker):
         abort(404)
     stock1.ticker = request.json.get('ticker', stock1.ticker)
     stock2 = Stock.query.filter_by(ticker=stock1.ticker).first()
-    if stock2 is not None and stock1.id == stock2.id:
+    if stock2 is not None and stock1.id is not stock2.id:
         raise ValidationError('Stock with %s already exists.' % stock1.ticker)
     stock1.name = request.json.get('name', stock1.name)
     stock1.sector = request.json.get('sector', stock1.sector)

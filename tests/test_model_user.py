@@ -4,6 +4,12 @@ from datetime import datetime
 
 from app import create_app, db
 from app.models import AnonymousUser, Follow, Permission, Role, Stock, User, Watch
+from typing import Final
+
+STUDENT_EMAIL: Final = 'student@utdallas.edu'
+TA_EMAIL: Final = 'ta@utdallas.edu'
+TA_PASSWORD: Final = 'pa$$w0rd'
+
 
 
 class ModelUserTest(unittest.TestCase):
@@ -31,7 +37,7 @@ class ModelUserTest(unittest.TestCase):
     def test_password_verify(self):
         user = User(password='password')
         self.assertTrue(user.verify_password('password'))
-        self.assertFalse(user.verify_password('pa$$w0rd'))
+        self.assertFalse(user.verify_password(TA_PASSWORD))
 
     def test_password_salting(self):
         user = User(password='password')
@@ -47,7 +53,7 @@ class ModelUserTest(unittest.TestCase):
 
     def test_invalid_account_confirmation_token(self):
         user = User(password='password')
-        user2 = User(password='pa$$w0rd')
+        user2 = User(password=TA_PASSWORD)
         db.session.add(user)
         db.session.add(user2)
         db.session.commit()
@@ -67,47 +73,47 @@ class ModelUserTest(unittest.TestCase):
         db.session.add(user)
         db.session.commit()
         token = user.generate_password_reset_token()
-        self.assertTrue(User.reset_password(token, 'pa$$w0rd'))
-        self.assertTrue(user.verify_password('pa$$w0rd'))
+        self.assertTrue(User.reset_password(token, TA_PASSWORD))
+        self.assertTrue(user.verify_password(TA_PASSWORD))
 
     def test_invalid_reset_token(self):
         user = User(password='password')
         db.session.add(user)
         db.session.commit()
         token = user.generate_password_reset_token()
-        self.assertFalse(User.reset_password(token + '0', 'pa$$w0rd'))
+        self.assertFalse(User.reset_password(token + '0', TA_PASSWORD))
         self.assertTrue(user.verify_password('password'))
 
     def test_valid_email_change_token(self):
-        user = User(email='ta@utdallas.edu', password='password')
+        user = User(email=TA_EMAIL, password='password')
         db.session.add(user)
         db.session.commit()
-        token = user.generate_email_change_token('student@utdallas.edu')
+        token = user.generate_email_change_token(STUDENT_EMAIL)
         self.assertTrue(user.change_email(token))
-        self.assertTrue(user.email == 'student@utdallas.edu')
+        self.assertTrue(user.email == STUDENT_EMAIL)
 
     def test_invalid_email_change_token(self):
-        user1 = User(email='ta@utdallas.edu', password='password')
-        user2 = User(email='student@utdallas.edu', password='pa$$w0rd')
+        user1 = User(email=TA_EMAIL, password='password')
+        user2 = User(email=STUDENT_EMAIL, password=TA_PASSWORD)
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
         token = user1.generate_email_change_token('professor@utdallas.edu')
         self.assertFalse(user2.change_email(token))
-        self.assertTrue(user2.email == 'student@utdallas.edu')
+        self.assertTrue(user2.email == STUDENT_EMAIL)
 
     def test_duplicate_password_email_change_token(self):
-        user1 = User(email='ta@utdallas.edu', password='password')
-        user2 = User(email='student@utdallas.edu', password='pa$$w0rd')
+        user1 = User(email=TA_EMAIL, password='password')
+        user2 = User(email=STUDENT_EMAIL, password=TA_PASSWORD)
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
-        token = user2.generate_email_change_token('ta@utdallas.edu')
+        token = user2.generate_email_change_token(TA_EMAIL)
         self.assertFalse(user2.change_email(token))
-        self.assertTrue(user2.email == 'student@utdallas.edu')
+        self.assertTrue(user2.email == STUDENT_EMAIL)
 
     def test_user_role(self):
-        user = User(email='student@utdallas.edu', password='password')
+        user = User(email=STUDENT_EMAIL, password='password')
         self.assertTrue(user.can(Permission.FOLLOW))
         self.assertTrue(user.can(Permission.COMMENT))
         self.assertTrue(user.can(Permission.WRITE))
@@ -116,7 +122,7 @@ class ModelUserTest(unittest.TestCase):
 
     @staticmethod
     def get_user_with_role(role):
-        return User(email='student@utdallas.edu', password='password', role=role)
+        return User(email=STUDENT_EMAIL, password='password', role=role)
 
     def test_moderator_role(self):
         user = self.get_user_with_role(Role.query.filter_by(name='Moderator').first())
@@ -161,7 +167,7 @@ class ModelUserTest(unittest.TestCase):
         self.assertTrue(user.last_seen > last_seen_before)
 
     def test_gravatar(self):
-        user = User(email='student@utdallas.edu', password='password')
+        user = User(email=STUDENT_EMAIL, password='password')
         with self.app.test_request_context('/'):
             gravatar = user.gravatar()
             gravatar_256 = user.gravatar(size=256)
@@ -174,8 +180,8 @@ class ModelUserTest(unittest.TestCase):
 
     def test_follow(self):
         # Create users and assert user1 not following user2
-        user1 = User(email='student@utdallas.edu', password='password')
-        user2 = User(email='ta@utdallas.edu', password='pa$$w0rd')
+        user1 = User(email=STUDENT_EMAIL, password='password')
+        user2 = User(email=TA_EMAIL, password=TA_PASSWORD)
         db.session.add(user1)
         db.session.add(user2)
         db.session.commit()
@@ -218,7 +224,7 @@ class ModelUserTest(unittest.TestCase):
 
     def test_watch(self):
         # Create users and assert user1 not following user2
-        user = User(email='student@utdallas.edu', password='password')
+        user = User(email=STUDENT_EMAIL, password='password')
         stock = Stock(name='Apple', ticker='AAPL', sector="Tech", is_active=True, year_high=1000.0, year_low=100.0)
         db.session.add(user)
         db.session.add(stock)
@@ -260,12 +266,12 @@ class ModelUserTest(unittest.TestCase):
         self.assertTrue(Watch.query.count() == 0)
 
     def test_to_json(self):
-        user = User(email='student@utdallas.edu', password='password')
+        user = User(username='student', email=STUDENT_EMAIL, password='password')
         db.session.add(user)
         db.session.commit()
         with self.app.test_request_context('/'):
             json_user = user.to_json()
         expected_keys = ['url', 'username', 'member_since', 'last_seen',
                          'trades_url', 'followed_trades_url', 'trade_count']
-        self.assertEqual(sorted(json_user.keys()), sorted(expected_keys))
-        self.assertEqual('/api/v1/users/' + str(user.id), json_user['url'])
+        self.assertEqual(sorted(expected_keys), sorted(json_user.keys()))
+        self.assertEqual('/api/v1/users/' + user.username, json_user['url'])
