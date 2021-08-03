@@ -30,6 +30,7 @@ def upgrade():
     op.create_index(op.f('ix_stocks_name'), 'stocks', ['name'], unique=True)
     op.create_index(op.f('ix_stocks_sector'), 'stocks', ['sector'], unique=False)
     op.create_index(op.f('ix_stocks_ticker'), 'stocks', ['ticker'], unique=True)
+    # noinspection PyTypeChecker
     op.create_table('trades',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('stock_id', sa.Integer(), nullable=True),

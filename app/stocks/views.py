@@ -8,7 +8,7 @@ from .. import db
 from ..decorators import admin_required
 from ..models import Stock, Trade
 
-STOCK_INFO = '.stock_info'
+STOCK_INFO: Final = '.stock_info'
 
 
 @stocks.route('/add', methods=['GET', 'POST'])

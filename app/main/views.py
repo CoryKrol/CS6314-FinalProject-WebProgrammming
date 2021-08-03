@@ -1,4 +1,4 @@
-from flask import abort, current_app, flash, make_response, render_template, redirect, request, url_for
+from flask import abort, current_app, make_response, render_template, redirect, request, url_for
 from flask_login import current_user, login_required
 
 from . import main

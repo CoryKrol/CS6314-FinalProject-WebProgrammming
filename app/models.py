@@ -1,16 +1,20 @@
 import hashlib
-from . import db, login_manager
-from .exceptions import ValidationError
 from datetime import datetime
-from flask import abort, current_app, request, url_for
+from typing import Final
+
+from flask import abort, current_app, url_for
 from flask_login import AnonymousUserMixin, UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from typing import Final
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from . import db, login_manager
+from .exceptions import ValidationError
 
 CASCADE: Final = 'all, delete-orphan'
 USERS_ID: Final = 'users.id'
 
+
+# noinspection PyMethodMayBeStatic, PyUnusedLocal
 class AnonymousUser(AnonymousUserMixin):
     """
     Class to hold the permission of unauthenticated users so we can check permissions without having to do a login check
@@ -234,6 +238,7 @@ class Follow(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# noinspection PyBroadException,PyPep8
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -467,6 +472,7 @@ class User(UserMixin, db.Model):
             'followed_trades_url': url_for('api.get_user_followed_trades', username=self.username),
             'trade_count': self.trades.count()
         }
+
 
 @login_manager.user_loader
 def load_user(user_id):

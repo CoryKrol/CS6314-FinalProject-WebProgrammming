@@ -18,6 +18,7 @@ class AddStockForm(FlaskForm):
     year_low = DecimalField('52-Week Low', places=2, validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+    # noinspection PyMethodMayBeStatic
     def validate_ticker(self, field):
         if Stock.query.filter_by(ticker=field.data).first():
             raise ValidationError('Ticker already in use.')

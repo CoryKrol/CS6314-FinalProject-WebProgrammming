@@ -1,10 +1,10 @@
 from flask import jsonify, request, g, url_for, current_app
-from .. import db
-from ..models import Stock, Trade, Permission
+
 from . import api
-from .auth import auth
 from .decorators import permission_required
 from .errors import forbidden
+from .. import db
+from ..models import Stock, Trade, Permission
 
 
 @api.route('/trades/')

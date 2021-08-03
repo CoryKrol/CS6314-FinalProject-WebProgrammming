@@ -14,6 +14,7 @@ class ChangeEmailForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Update Email Address')
 
+    # noinspection PyMethodMayBeStatic
     def validate_email(self, field):
         if User.query.filter_by(email=field.data.lower()).first():
             raise ValidationError('Email already in use.')
@@ -61,6 +62,7 @@ class PasswordResetForm(FlaskForm):
     submit = SubmitField('Reset Password')
 
 
+# noinspection PyMethodMayBeStatic
 class RegistrationForm(FlaskForm):
     """
     Rendered by wtf.quick_form()

@@ -11,7 +11,6 @@ TA_EMAIL: Final = 'ta@utdallas.edu'
 TA_PASSWORD: Final = 'pa$$w0rd'
 
 
-
 class ModelUserTest(unittest.TestCase):
     def setUp(self):
         self.app = create_app('testing')

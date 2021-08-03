@@ -1,10 +1,10 @@
 from flask import abort, jsonify, request, url_for, current_app
-from .. import db
-from ..models import Stock, Permission
+
 from . import api
-from .auth import auth
 from .decorators import permission_required
+from .. import db
 from ..exceptions import ValidationError
+from ..models import Stock, Permission
 
 
 @api.route('/stocks/')
