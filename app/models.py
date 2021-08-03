@@ -4,7 +4,7 @@ from typing import Final
 
 from flask import abort, current_app, url_for
 from flask_login import AnonymousUserMixin, UserMixin
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from . import db, login_manager
@@ -238,7 +238,6 @@ class Follow(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# noinspection PyBroadException,PyPep8
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
@@ -303,7 +302,9 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except:
+        except SignatureExpired:
+            return False
+        except BadSignature:
             return False
         if data.get('confirm') != self.id:
             return False
@@ -320,7 +321,9 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except:
+        except SignatureExpired:
+            return False
+        except BadSignature:
             return False
         user = User.query.get(data.get('reset'))
         if user is None:
@@ -338,7 +341,9 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except:
+        except SignatureExpired:
+            return False
+        except BadSignature:
             return False
         if data.get('change_email') != self.id:
             return False
@@ -447,7 +452,9 @@ class User(UserMixin, db.Model):
         serializer = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = serializer.loads(token)
-        except:
+        except SignatureExpired:
+            return None
+        except BadSignature:
             return None
         return User.query.get(data['id'])
 
