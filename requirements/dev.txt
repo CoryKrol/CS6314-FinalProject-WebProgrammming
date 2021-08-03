@@ -1,2 +1,9 @@
 -r common.txt
-faker
+certifi
+chardet
+faker==8.10.3
+httpie
+idna
+Pygments
+requests
+urllib3
