@@ -1,11 +1,15 @@
 import hashlib
 from . import db, login_manager
+from .exceptions import ValidationError
 from datetime import datetime
-from flask import current_app, request
+from flask import abort, current_app, request, url_for
 from flask_login import AnonymousUserMixin, UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from typing import Final
 from werkzeug.security import generate_password_hash, check_password_hash
 
+CASCADE: Final = 'all, delete-orphan'
+USERS_ID: Final = 'users.id'
 
 class AnonymousUser(AnonymousUserMixin):
     """
@@ -85,13 +89,36 @@ class Role(db.Model):
         return self.permissions & perm == perm
 
 
-# class Favorite(db.Model):
-#     __tablename__ = 'favorites'
-#     user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-#                         primary_key=True)
-#     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
-#                          primary_key=True)
-#     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+class Watch(db.Model):
+    __tablename__ = 'watches'
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID),
+                        primary_key=True)
+    stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'),
+                         primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_json(self):
+        return {
+            'url': url_for('api.user_unwatch_stock', username=self.user.username, ticker=self.stock.ticker),
+            'user': self.user.username,
+            'stock': self.stock.ticker
+        }
+
+    @staticmethod
+    def from_json(json):
+        username = json.get('user')
+        if username is None or username == '':
+            raise ValidationError('new watchlist entry does not have a username')
+        ticker = json.get('stock')
+        if ticker is None or ticker == '':
+            raise ValidationError('new watchlist entry does not have a stock ticker')
+        user = User.find_first_by_username(username=username)
+        if user is None:
+            raise ValidationError('user does not exist')
+        stock = Stock.query.filter_by(ticker=ticker).first()
+        if stock is None:
+            raise ValidationError('stock does not exist')
+        return Watch(user_id=user.id, stock_id=stock.id)
 
 
 class Stock(db.Model):
@@ -104,28 +131,105 @@ class Stock(db.Model):
     year_high = db.Column(db.Float)
     year_low = db.Column(db.Float)
     trades = db.relationship('Trade', backref='stock', lazy='dynamic')
-    # users = db.relationship('Favorite',
-    #                         foreign_keys=[Favorite.stock_id],
-    #                         backref=db.backref('stock', lazy='joined'),
-    #                         lazy='dynamic',
-    #                         cascade='all, delete-orphan')
+    users_watching = db.relationship('Watch',
+                                     foreign_keys=[Watch.stock_id],
+                                     backref=db.backref('stock', lazy='joined'),
+                                     lazy='dynamic',
+                                     cascade=CASCADE)
+
+    def is_watched_by(self, user):
+        if user.id is None:
+            return False
+        return self.users_watching.filter_by(user_id=user.id).first() is not None
+
+    def to_json(self):
+        return {
+            'url': url_for('api.get_stock', ticker=self.ticker),
+            'name': self.name,
+            'ticker': self.ticker,
+            'sector': self.sector,
+            'is_active': self.is_active,
+            'year_high': self.year_high,
+            'year_low': self.year_low
+        }
+
+    @staticmethod
+    def from_json(json):
+        name = json.get('name')
+        if name is None or name == '':
+            raise ValidationError('stock does not have a name')
+        ticker = json.get('ticker')
+        if ticker is None or ticker == '':
+            raise ValidationError('stock does not have a ticker')
+        sector = json.get('sector')
+        if sector is None or sector == '':
+            raise ValidationError('stock does not have a sector')
+        year_high = json.get('year_high') or 0
+        if year_high < 0.0:
+            raise ValidationError('52-week high cannot be negative')
+        year_low = json.get('year_low') or 0
+        if year_low < 0.0:
+            raise ValidationError('52-week low cannot be negative')
+        if year_high < year_low:
+            raise ValidationError('52-week low cannot be larger than 52-week high')
+        return Stock(name=name,
+                     ticker=ticker,
+                     sector=sector,
+                     year_high=year_high,
+                     year_low=year_low)
 
 
 class Trade(db.Model):
     __tablename__ = 'trades'
     id = db.Column(db.Integer, primary_key=True)
     stock_id = db.Column(db.Integer, db.ForeignKey('stocks.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey(USERS_ID))
     timestamp = db.Column(db.DateTime(), index=True, default=datetime.utcnow)
     quantity = db.Column(db.Integer)
     price = db.Column(db.Float)
 
+    def to_json(self):
+        return {
+            'url': url_for('api.get_trade', trade_id=self.id),
+            'stock': self.stock.ticker,
+            'user': self.user.username,
+            'timestamp': self.timestamp,
+            'quantity': self.quantity,
+            'price': self.price
+        }
+
+    @staticmethod
+    def from_json(json):
+        quantity = json.get('quantity')
+        if quantity is None or quantity == '':
+            raise ValidationError('trade does not have a quantity.')
+        price = json.get('price')
+        if price is None or price == '':
+            raise ValidationError('trade does not have a price.')
+        username = json.get('user')
+        if username is None or username == '':
+            raise ValidationError('trade does not have a user.')
+        ticker = json.get('stock')
+        if ticker is None or ticker == '':
+            raise ValidationError('trade does not have a stock.')
+        stock = Stock.query.filter_by(ticker=ticker).first()
+        if stock is None:
+            raise ValidationError('stock does not exist')
+        user = User.find_first_by_username(username=username)
+        if user is None:
+            raise ValidationError('user does not exist')
+
+        return Trade(stock_id=stock.id,
+                     user_id=user.id,
+                     quantity=quantity,
+                     price=price)
+
 
 class Follow(db.Model):
     __tablename__ = 'follows'
-    followed_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+    followed_id = db.Column(db.Integer, db.ForeignKey(USERS_ID),
                             primary_key=True)
-    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'),
+    follower_id = db.Column(db.Integer, db.ForeignKey(USERS_ID),
                             primary_key=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -145,21 +249,21 @@ class User(UserMixin, db.Model):
     last_seen = db.Column(db.DateTime(), default=datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
     trades = db.relationship('Trade', backref='user', lazy='dynamic')
-    # stocks = db.relationship('Favorite',
-    #                          foreign_keys=[Favorite.user_id],
-    #                          backref=db.backref('user', lazy='joined'),
-    #                          lazy='dynamic',
-    #                          cascade='all, delete-orphan')
+    watches = db.relationship('Watch',
+                              foreign_keys=[Watch.user_id],
+                              backref=db.backref('user', lazy='joined'),
+                              lazy='dynamic',
+                              cascade=CASCADE)
     followed = db.relationship('Follow',
                                foreign_keys=[Follow.follower_id],
                                backref=db.backref('follower', lazy='joined'),
                                lazy='dynamic',
-                               cascade='all, delete-orphan')
+                               cascade=CASCADE)
     followers = db.relationship('Follow',
                                 foreign_keys=[Follow.followed_id],
                                 backref=db.backref('followed', lazy='joined'),
                                 lazy='dynamic',
-                                cascade='all, delete-orphan')
+                                cascade=CASCADE)
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
@@ -262,9 +366,9 @@ class User(UserMixin, db.Model):
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         url = 'https://secure.gravatar.com/avatar'
-        hash = self.avatar_hash or self.gravatar_hash()
+        grav_hash = self.avatar_hash or self.gravatar_hash()
         return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(url=url,
-                                                                     hash=hash,
+                                                                     hash=grav_hash,
                                                                      size=size,
                                                                      default=default,
                                                                      rating=rating)
@@ -289,6 +393,33 @@ class User(UserMixin, db.Model):
             return False
         return self.followers.filter_by(follower_id=user.id).first() is not None
 
+    def get_followers_pagination(self, page_request):
+        return self.follows.paginate(page_request.args.get('page', 1, type=int),
+                                     per_page=current_app.config['FOLLOWERS_PER_PAGE'],
+                                     error_out=False)
+
+    def get_followed_pagination(self, page_request):
+        return self.followed.paginate(page_request.args.get('page', 1, type=int),
+                                      per_page=current_app.config['FOLLOWERS_PER_PAGE'],
+                                      error_out=False)
+
+    def is_watching(self, stock):
+        if stock.id is None:
+            return False
+        return self.watches.filter_by(stock_id=stock.id).first() is not None
+
+    def watch(self, stock):
+        if not self.is_watching(stock):
+            watch = Watch(user=self, stock=stock)
+            db.session.add(watch)
+            db.session.commit()
+
+    def unwatch(self, stock):
+        watch = self.watches.filter_by(stock_id=stock.id).first()
+        if watch:
+            db.session.delete(watch)
+            db.session.commit()
+
     @property
     def followed_trades(self):
         return Trade.query.join(Follow, Follow.followed_id == Trade.user_id).filter(Follow.follower_id == self.id)
@@ -302,6 +433,40 @@ class User(UserMixin, db.Model):
                 db.session.add(user)
                 db.session.commit()
 
+    def generate_auth_token(self, expiration):
+        serializer = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
+        return serializer.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        serializer = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = serializer.loads(token)
+        except:
+            return None
+        return User.query.get(data['id'])
+
+    @staticmethod
+    def find_first_by_username(username):
+        return User.query.filter_by(username=username).first()
+
+    @staticmethod
+    def find_by_username_or_404(username):
+        user = User.find_first_by_username(username=username)
+        if user is None:
+            abort(404)
+        return user
+
+    def to_json(self):
+        return {
+            'url': url_for('api.get_user', username=self.username),
+            'username': self.username,
+            'member_since': self.member_since,
+            'last_seen': self.last_seen,
+            'trades_url': url_for('api.get_user_trades', username=self.username),
+            'followed_trades_url': url_for('api.get_user_followed_trades', username=self.username),
+            'trade_count': self.trades.count()
+        }
 
 @login_manager.user_loader
 def load_user(user_id):

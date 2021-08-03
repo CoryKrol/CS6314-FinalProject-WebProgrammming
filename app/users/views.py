@@ -1,5 +1,6 @@
-from flask import abort, current_app, flash, render_template, redirect, request, url_for
+from flask import current_app, flash, render_template, redirect, request, url_for
 from flask_login import current_user, login_required
+from typing import Final
 
 from . import users
 from .forms import EditProfileAdministratorForm, EditProfileForm
@@ -7,115 +8,9 @@ from .. import db
 from ..decorators import admin_required, permission_required
 from ..models import Permission, Role, Trade, User
 
-watchListStocks = [
-    {
-        "name": "A",
-        "ticker": "A",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "300",
-        "gainLossSincePurchasePercentage": "30%"
-    },
-        {
-        "name": "B",
-        "ticker": "B",
-        "lastTrade": "500.00",
-        "shares": "2000",
-        "purchasePrice": "264.00",
-        "currentPrice": "525.00",
-        "gainLossSincePurchase": "200",
-        "gainLossSincePurchasePercentage": "20%"
-    },
-        {
-        "name": "C",
-        "ticker": "C",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "400",
-        "gainLossSincePurchasePercentage": "40%"
-    },
-        {
-        "name": "D",
-        "ticker": "D",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "900",
-        "gainLossSincePurchasePercentage": "90%"
-    },
-        {
-        "name": "E",
-        "ticker": "E",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "800",
-        "gainLossSincePurchasePercentage": "80%"
-    },
-        {
-        "name": "F",
-        "ticker": "F",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "700",
-        "gainLossSincePurchasePercentage": "70%"
-    },
-        {
-        "name": "G",
-        "ticker": "G",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "100",
-        "gainLossSincePurchasePercentage": "10%"
-    },
-        {
-        "name": "H",
-        "ticker": "H",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "400",
-        "gainLossSincePurchasePercentage": "40%"
-    },
-        {
-        "name": "I",
-        "ticker": "I",
-        "lastTrade": "1500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "1525.00",
-        "gainLossSincePurchase": "500",
-        "gainLossSincePurchasePercentage": "50%"
-    },
-        {
-        "name": "J",
-        "ticker": "J",
-        "lastTrade": "500.00",
-        "shares": "2000",
-        "purchasePrice": "1264.00",
-        "currentPrice": "525.00",
-        "gainLossSincePurchase": "600",
-        "gainLossSincePurchasePercentage": "60%"
-    }
-
-]
-
-@users.route('/watchlist', methods=['GET', 'POST'])
-@login_required
-def watchlist():
-    #TODO add form=form, stocks=trade_items, pagination=pagination back in if needed
-    return render_template('users/watchlist.html', stocks=watchListStocks)
+INDEX: Final = '.index'
+INVALID_USER: Final = 'Invalid user.'
+USER_PROFILE: Final = '.user_profile'
 
 
 @users.route('/edit-profile/<int:user_id>', methods=['GET', 'POST'])
@@ -135,7 +30,7 @@ def edit_profile_admin(user_id):
         db.session.add(edit_user)
         db.session.commit()
         flash('Profile for ' + edit_user.username + ' updated successfully.')
-        return redirect(url_for('.user_profile', username=edit_user.username))
+        return redirect(url_for(USER_PROFILE, username=edit_user.username))
     form.about_me.data = edit_user.about_me
     form.confirmed.data = edit_user.confirmed
     form.email.data = edit_user.email
@@ -158,7 +53,7 @@ def edit_profile():
         db.session.add(current_user)
         db.session.commit()
         flash('Profile successfully updated.')
-        return redirect(url_for('.user_profile', username=current_user.username))
+        return redirect(url_for(USER_PROFILE, username=current_user.username))
     # Populate form with user data
     form.about_me.data = current_user.about_me
     form.location.data = current_user.location
@@ -170,70 +65,87 @@ def edit_profile():
 @login_required
 @permission_required(Permission.FOLLOW)
 def follow(username):
-    user = User.query.filter_by(username=username).first()
+    user = User.find_first_by_username(username=username)
     if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('.index'))
+        flash(INVALID_USER)
+        return redirect(url_for(INDEX))
     if current_user.is_following(user):
         flash('Already following user.')
-        return redirect(url_for('.user_profile', username=username))
+        return redirect(url_for(USER_PROFILE, username=username))
     current_user.follow(user)
     db.session.commit()
     flash('You are now following %s.' % username)
-    return redirect(url_for('.user_profile', username=username))
+    return redirect(url_for(USER_PROFILE, username=username))
 
 
 @users.route('/unfollow/<username>')
 @login_required
 @permission_required(Permission.FOLLOW)
 def unfollow(username):
-    user = User.query.filter_by(username=username).first()
+    user = User.find_first_by_username(username=username)
     if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('.index'))
+        flash(INVALID_USER)
+        return redirect(url_for(INDEX))
     if not current_user.is_following(user):
         flash('Not following user.')
-        return redirect(url_for('.user_profile', username=username))
+        return redirect(url_for(USER_PROFILE, username=username))
     current_user.unfollow(user)
     db.session.commit()
     flash('You are not following %s anymore.' % username)
-    return redirect(url_for('.user_profile', username=username))
+    return redirect(url_for(USER_PROFILE, username=username))
 
 
 @users.route('/followers/<username>')
+@login_required
 def followers(username):
-    user = User.query.filter_by(username=username).first()
+    user = User.find_first_by_username(username=username)
     if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('.index'))
-    page = request.args.get('page', 1, type=int)
-    pagination = user.followers.paginate(page, per_page=current_app.config['FOLLOWERS_PER_PAGE'], error_out=False)
-    follows = [{'user': item.follower, 'timestamp': item.timestamp}
-               for item in pagination.items]
-    return render_template('users/followers.html', user=user, title="Followers of",
-                           endpoint='.followers', pagination=pagination,
+        flash(INVALID_USER)
+        return redirect(url_for(INDEX))
+    pagination = user.get_followers_pagination(request)
+    follows = [{'user': item.follower, 'timestamp': item.timestamp} for item in pagination.items]
+    return render_template('users/followers.html',
+                           user=user,
+                           title="Followers of",
+                           endpoint='.followers',
+                           pagination=pagination,
                            follows=follows)
 
 
 @users.route('/followed_by/<username>')
+@login_required
 def followed_by(username):
-    user = User.query.filter_by(username=username).first()
+    user = User.find_first_by_username(username=username)
     if user is None:
-        flash('Invalid user.')
-        return redirect(url_for('.index'))
-    page = request.args.get('page', 1, type=int)
-    pagination = user.followed.paginate(page, per_page=current_app.config['FOLLOWERS_PER_PAGE'], error_out=False)
-    follows = [{'user': item.followed, 'timestamp': item.timestamp}
-               for item in pagination.items]
-    return render_template('users/followers.html', user=user, title="Followed by",
-                           endpoint='.followed_by', pagination=pagination,
+        flash(INVALID_USER)
+        return redirect(url_for(INDEX))
+    pagination = user.get_followed_pagination(request)
+    follows = [{'user': item.followed, 'timestamp': item.timestamp} for item in pagination.items]
+    return render_template('users/followers.html',
+                           user=user,
+                           title="Followed by",
+                           endpoint='.followed_by',
+                           pagination=pagination,
                            follows=follows)
 
 
+@users.route('/watchlist/')
+@login_required
+def watchlist():
+    page = request.args.get('page', 1, type=int)
+    pagination = current_user.watches.paginate(page, per_page=current_app.config['WATCHLIST_PER_PAGE'], error_out=False)
+    watches = [{'stock': item.stock, 'timestamp': item.timestamp} for item in pagination.items]
+    return render_template('users/watchlist.html',
+                           user=current_user,
+                           title='Watchlist',
+                           endpoint='.watchlist',
+                           pagination=pagination,
+                           watches=watches)
+
+
 @users.route('/<username>')
+@login_required
 def user_profile(username):
-    user = User.query.filter_by(username=username).first()
-    if user is None:
-        abort(404)
+    user = User.find_by_username_or_404(username=username)
     trades = user.trades.order_by(Trade.timestamp.desc()).all()
     return render_template('users/user_profile.html', user=user, trades=trades)
