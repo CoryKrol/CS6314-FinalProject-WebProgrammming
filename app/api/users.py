@@ -1,6 +1,6 @@
 from flask import abort, g, jsonify, request, current_app, url_for
+
 from . import api
-from .auth import auth
 from ..exceptions import ValidationError
 from ..models import User, Stock, Trade, Watch
 
@@ -69,9 +69,9 @@ def user_watch_stock(username, ticker):
         raise ValidationError('user is already watching stock')
     user.watch(stock=stock)
     new_watch = user.watches.filter_by(stock_id=stock.id).first()
-    return jsonify(new_watch.to_json()), \
-           201, \
-           {'Location': url_for('api.user_unwatch_stock', username=username, ticker=ticker)}
+    return jsonify(new_watch.to_json()), 201, {'Location': url_for('api.user_unwatch_stock',
+                                                                   username=username,
+                                                                   ticker=ticker)}
 
 
 @api.route('/users/<username>/unwatch/<ticker>')

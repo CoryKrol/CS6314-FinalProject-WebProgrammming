@@ -7,9 +7,11 @@ from app import create_app, db, fake
 from app.models import Role, User, Stock
 
 
+# noinspection PyPep8
 class SeleniumTestCase(unittest.TestCase):
     client = None
 
+    # noinspection PyPep8,PyBroadException
     @classmethod
     def setUpClass(cls):
         # Start Chrome

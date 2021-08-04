@@ -1,13 +1,10 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
+{% from 'bootstrap/form.html' import render_form %}
 
 {% block title %}Hedgehog - Edit Trade{% endblock %}
-
+{% block page_header %}Edit Trade{% endblock %}
 {% block page_content %}
-    <div class="page-header">
-        <h1>Edit Trade</h1>
-    </div>
     <div class="col-md-4">
-        {{ wtf.quick_form(form) }}
+        {{ render_form(form) }}
     </div>
 {% endblock %}

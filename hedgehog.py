@@ -22,15 +22,15 @@ def make_shell_context():
 
 
 @app.cli.command()
-@click.option('--coverage/--no-coverage', default=False, help='Run tests with code coverage.')
+@click.option('--code-coverage/--no-code-coverage', default=False, help='Run tests with code coverage.')
 @click.argument('test_names', nargs=-1)
-def test(coverage, test_names):
+def test(code_coverage, test_names):
     """
     Create a custom flask cli command to run the unit tests.
     Run with flask in terminal
     $ flask test
     """
-    if coverage and not os.environ.get('FLASK_COVERAGE'):
+    if code_coverage and not os.environ.get('FLASK_COVERAGE'):
         import subprocess
         os.environ['FLASK_COVERAGE'] = '1'
         sys.exit(subprocess.call(sys.argv))

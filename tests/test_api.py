@@ -1,10 +1,10 @@
-import unittest
 import json
-import re
+import unittest
 from base64 import b64encode
+from typing import Final
+
 from app import create_app, db
 from app.models import User, Role, Stock
-from typing import Final
 
 CONTENT_TYPE: Final = 'application/json'
 API_V1_TRADES: Final = '/api/v1/trades/'
@@ -14,6 +14,7 @@ STUDENT_EMAIL: Final = 'student@utdallas.edu'
 TA_EMAIL: Final = 'ta@utdallas.edu'
 TA_PASSWORD: Final = 'pa$$w0rd'
 LOCALHOST: Final = 'http://localhost'
+
 
 class APITestCase(unittest.TestCase):
     def setUp(self):

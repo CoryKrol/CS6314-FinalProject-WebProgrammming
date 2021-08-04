@@ -1,11 +1,11 @@
 from flask_wtf import FlaskForm
-from flask_wtf import FlaskForm
 from wtforms import DecimalField, IntegerField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, ValidationError
 
 from ..models import Stock, User
 
 
+# noinspection PyMethodMayBeStatic
 class BuyStockForm(FlaskForm):
     ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
     price = DecimalField('Price', validators=[DataRequired()], places=2)
@@ -26,6 +26,7 @@ class BuyStockForm(FlaskForm):
             raise ValidationError('Stock not in system. An administrator has been notified.')
 
 
+# noinspection PyMethodMayBeStatic
 class EditTradeForm(FlaskForm):
     ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
     user = StringField('Username', validators=[DataRequired(), Length(1, 64)])

@@ -68,7 +68,7 @@ def register():
                    token=token)
         flash('A confirmation email has been sent to complete the registration process')
         return redirect(url_for(MAIN_INDEX))
-    return render_template('auth/register.html', form=form)
+    return render_template('forms.html', form=form, title='Registration Form')
 
 
 @auth.route('/confirmation/<token>')
@@ -97,7 +97,7 @@ def change_password():
             return redirect(url_for(MAIN_INDEX))
         else:
             flash('Invalid password.')
-    return render_template('auth/change_password.html', form=form)
+    return render_template('forms.html', form=form, title='Change Password')
 
 
 @auth.route('/confirmation')
@@ -131,7 +131,7 @@ def password_reset_request():
             token = user.generate_reset_token()
             send_email(user.email, 'Reset Password', 'auth/email/reset_password', user=user, token=token)
     flash('An email with instructions to reset your password has been sent to you,')
-    return render_template('auth/reset_password.html', form=form)
+    return render_template('forms.html', form=form, title='Reset Password')
 
 
 @auth.route('/reset/<token>', methods=['GET', 'POST'])
@@ -146,7 +146,7 @@ def password_reset(token):
             return redirect(url_for('auth.login'))
         else:
             return redirect(url_for(MAIN_INDEX))
-    return render_template('auth/reset_password.html', form=form)
+    return render_template('forms.html', form=form, title='Reset Password')
 
 
 @auth.route('/change_email', methods=['GET', 'POST'])
@@ -164,7 +164,7 @@ def change_email_request():
             return redirect(url_for(MAIN_INDEX))
         else:
             flash('Invalid email or password.')
-    return render_template("auth/change_email.html", form=form)
+    return render_template("forms.html", form=form, title='Change Email')
 
 
 @auth.route('/change_email/<token>')

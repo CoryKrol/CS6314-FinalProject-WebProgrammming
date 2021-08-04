@@ -30,6 +30,7 @@ def edit_trade(trade_id):
     return render_template('trades/edit_trade.html', form=form, trade=trade)
 
 
+# noinspection PyProtectedMember
 @trades.route('/', methods=['GET', 'POST'])
 @login_required
 def trades_list():

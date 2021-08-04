@@ -1,16 +1,20 @@
 import hashlib
+from datetime import datetime
+from typing import Final
+
+from flask import abort, current_app, url_for
+from flask_login import AnonymousUserMixin, UserMixin
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from . import db, login_manager
 from .exceptions import ValidationError
-from datetime import datetime
-from flask import abort, current_app, request, url_for
-from flask_login import AnonymousUserMixin, UserMixin
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from typing import Final
-from werkzeug.security import generate_password_hash, check_password_hash
 
 CASCADE: Final = 'all, delete-orphan'
 USERS_ID: Final = 'users.id'
 
+
+# noinspection PyMethodMayBeStatic, PyUnusedLocal
 class AnonymousUser(AnonymousUserMixin):
     """
     Class to hold the permission of unauthenticated users so we can check permissions without having to do a login check
@@ -298,7 +302,9 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except:
+        except SignatureExpired:
+            return False
+        except BadSignature:
             return False
         if data.get('confirm') != self.id:
             return False
@@ -315,7 +321,9 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except:
+        except SignatureExpired:
+            return False
+        except BadSignature:
             return False
         user = User.query.get(data.get('reset'))
         if user is None:
@@ -333,7 +341,9 @@ class User(UserMixin, db.Model):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = s.loads(token.encode('utf-8'))
-        except:
+        except SignatureExpired:
+            return False
+        except BadSignature:
             return False
         if data.get('change_email') != self.id:
             return False
@@ -442,7 +452,9 @@ class User(UserMixin, db.Model):
         serializer = Serializer(current_app.config['SECRET_KEY'])
         try:
             data = serializer.loads(token)
-        except:
+        except SignatureExpired:
+            return None
+        except BadSignature:
             return None
         return User.query.get(data['id'])
 
@@ -467,6 +479,7 @@ class User(UserMixin, db.Model):
             'followed_trades_url': url_for('api.get_user_followed_trades', username=self.username),
             'trade_count': self.trades.count()
         }
+
 
 @login_manager.user_loader
 def load_user(user_id):
