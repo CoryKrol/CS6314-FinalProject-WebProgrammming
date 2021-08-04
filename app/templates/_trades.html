@@ -3,7 +3,7 @@
         <li class="trade">
             <div class="trade-thumbnail">
                 <a href="{{ url_for('users.user_profile', username=trade.user.username) }}">
-                    <img class="img-rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
+                    <img class="rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
                 </a>
             </div>
             <div class="trade-content">
@@ -13,7 +13,7 @@
                 <div class="trade-price">{{ trade.price }}</div>
                 <div class="trade-quantity">{{ trade.quantity }}</div>
             </div>
-            <div class="post-footer">
+            <div class="trade-footer">
                 {% if current_user.is_administrator() %}
                     <a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}">
                         <span class="label label-danger">Edit [Admin]</span>

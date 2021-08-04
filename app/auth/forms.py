@@ -7,7 +7,7 @@ from ..models import User
 
 class ChangeEmailForm(FlaskForm):
     """
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     email = StringField('New Email', validators=[DataRequired(), Length(1, 64),
                                                  Email()])
@@ -22,7 +22,7 @@ class ChangeEmailForm(FlaskForm):
 
 class ChangePasswordForm(FlaskForm):
     """
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     old_password = PasswordField('Old password', validators=[DataRequired()])
     password = PasswordField('New Password',
@@ -34,7 +34,7 @@ class ChangePasswordForm(FlaskForm):
 
 class LoginForm(FlaskForm):
     """
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -44,7 +44,7 @@ class LoginForm(FlaskForm):
 
 class PasswordResetRequestForm(FlaskForm):
     """
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     email = StringField('Email', validators=[DataRequired(),
                                              Length(1, 64),
@@ -54,7 +54,7 @@ class PasswordResetRequestForm(FlaskForm):
 
 class PasswordResetForm(FlaskForm):
     """
-    Rendered by wtf.quick_form()
+    Rendered by wtf.qrender_form()
     """
     password = PasswordField('New Password', validators=[DataRequired(),
                                                          EqualTo('password2', message='Passwords must match')])
@@ -65,7 +65,7 @@ class PasswordResetForm(FlaskForm):
 # noinspection PyMethodMayBeStatic
 class RegistrationForm(FlaskForm):
     """
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
     username = StringField('Username',
