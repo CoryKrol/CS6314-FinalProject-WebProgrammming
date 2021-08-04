@@ -8,7 +8,7 @@ from ..models import Role, User
 class EditProfileAdministratorForm(FlaskForm):
     """
     Form for administrators to edit user profiles
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
     username = StringField('Username',
@@ -42,7 +42,7 @@ class EditProfileAdministratorForm(FlaskForm):
 class EditProfileForm(FlaskForm):
     """
     Form for users edit their profile
-    Rendered by wtf.quick_form()
+    Rendered by render_form()
     """
     name = StringField('Name', validators=[Length(0, 64)])
     location = StringField('Location', validators=[Length(0, 64)])

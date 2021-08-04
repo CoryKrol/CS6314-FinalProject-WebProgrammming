@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "_macros.html" as macros %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
 {% block title %}Hedgehog - {{ user.username }}{% endblock %}
 
 {% block page_content %}
@@ -50,8 +50,6 @@
     <h3>Trades by {{ user.username }}</h3>
     {% include '_trades.html' %}
     {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.user_profile', username=user.username) }}
-        </div>
+        {{ render_pagination(pagination, endpoint='.user_profile', prev='«', next='»', align='center', args={'username':user.username}) }}
     {% endif %}
 {% endblock %}

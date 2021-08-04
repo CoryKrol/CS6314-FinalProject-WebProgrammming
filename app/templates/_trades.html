@@ -13,7 +13,7 @@
                 <div class="trade-price">{{ trade.price }}</div>
                 <div class="trade-quantity">{{ trade.quantity }}</div>
             </div>
-            <div class="post-footer">
+            <div class="trade-footer">
                 {% if current_user.is_administrator() %}
                     <a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}">
                         <span class="label label-danger">Edit [Admin]</span>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "_macros.html" as macros %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
 {% block title %}Hedgehog - {{ title }} {{ user.username }}{% endblock %}
 {% block page_content %}
     <div class="page-header">
@@ -22,7 +22,7 @@
             {% endif %}
         {% endfor %}
     </table>
-    <div class="pagination">
-        {{ macros.pagination_widget(pagination, endpoint, username = user.username) }}
-    </div>
+    {% if pagination %}
+        {{ render_pagination(pagination, endpoint='.index', prev='«', next='»', align='center') }}
+    {% endif %}
 {% endblock %}

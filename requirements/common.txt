@@ -1,9 +1,9 @@
 alembic
 blinker
+Bootstrap-Flask
 click
 dominate
 Flask==2.0.1
-Flask-Bootstrap
 Flask-HTTPAuth
 Flask-Login
 Flask-Mail

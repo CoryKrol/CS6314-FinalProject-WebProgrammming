@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import "_macros.html" as macros %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
 {% block title %}Hedgehog - {{ stock.name }}{% endblock %}
 
 {% block page_content %}
@@ -22,8 +22,6 @@
     <h3>Trades of {{ stock.ticker }}</h3>
     {% include '_trades.html' %}
     {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.stock_info', ticker=stock.ticker) }}
-        </div>
+        {{ render_pagination(pagination, endpoint='.stock_info', prev='«', next='»', align='center', args={'ticker':stock.ticker}) }}
     {% endif %}
 {% endblock %}

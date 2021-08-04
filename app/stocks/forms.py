@@ -8,7 +8,7 @@ from ..models import Stock
 class AddStockForm(FlaskForm):
     """
     Form for administrators to add new stock information
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
     name = StringField('Name', validators=[DataRequired(), Length(1, 64)])
@@ -39,7 +39,7 @@ class AddStockForm(FlaskForm):
 class EditStockForm(FlaskForm):
     """
     Form for administrators to edit stock information
-    Rendered by wtf.quick_form()
+    Rendered by wtf.render_form()
     """
     ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
     name = StringField('Name', validators=[DataRequired(), Length(1, 64)])

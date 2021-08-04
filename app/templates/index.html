@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% import "bootstrap/wtf.html" as wtf %}
-{% import "_macros.html" as macros %}
+{% from 'bootstrap/form.html' import render_form %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
 {% block title %}Hedgehog{% endblock %}
 
 {% block page_content %}
@@ -8,17 +8,19 @@
         <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}NPC{% endif %}!</h1>
     </div>
     <div class="trade-tabs">
-    <ul class="nav nav-tabs">
-        <li{% if not show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_all') }}">All trades</a></li>
-        {% if current_user.is_authenticated %}
-        <li{% if show_followed %} class="active"{% endif %}><a href="{{ url_for('.show_followed') }}">Followed trader trades</a></li>
-        {% endif %}
-    </ul>
-    {% include '_trades.html' %}
-</div>
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link{% if not show_followed %} active{% endif %}" href="{{ url_for('.show_all') }}">All trades</a>
+            </li>
+            {% if current_user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link{% if show_followed %} active{% endif %}" href="{{ url_for('.show_followed') }}">Followed trader trades</a>
+                </li>
+            {% endif %}
+        </ul>
+        {% include '_trades.html' %}
+    </div>
     {% if pagination %}
-        <div class="pagination">
-            {{ macros.pagination_widget(pagination, '.index') }}
-        </div>
+        {{ render_pagination(pagination, endpoint='.index', prev='«', next='»', align='center') }}
     {% endif %}
 {% endblock %}
