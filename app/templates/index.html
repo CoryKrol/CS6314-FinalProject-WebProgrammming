@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% from 'bootstrap/form.html' import render_form %}
+{% from 'bootstrap/nav.html' import render_nav_item %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
 {% block title %}Hedgehog{% endblock %}
 
 {% block page_content %}
-    <div class="page-header">
-        <h1>Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}NPC{% endif %}!</h1>
+    <div class="row">
+    <div class="col">
+        {% block page_header %}
+            Hello, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}NPC{% endif %}!
+        {% endblock %}
+    </div>
     </div>
     <div class="trade-tabs">
         <ul class="nav nav-tabs">

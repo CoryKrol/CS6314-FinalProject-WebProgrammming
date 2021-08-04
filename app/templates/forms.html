@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% from "bootstrap/form.html" import render_form %}
 
-{% block title %}Hedgehog - Change Email Address{% endblock %}
+{% block title %}Hedgehog - {{ title }}{% endblock %}
 
+{% block page_header %}
+    {{ title }}
+{% endblock %}
 {% block page_content %}
-<div class="page-header">
-    <h1>Change Email Address</h1>
-</div>
 <div class="col-md-4">
     {{ render_form(form) }}
 </div>

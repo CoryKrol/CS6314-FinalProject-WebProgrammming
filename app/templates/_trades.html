@@ -3,7 +3,7 @@
         <li class="trade">
             <div class="trade-thumbnail">
                 <a href="{{ url_for('users.user_profile', username=trade.user.username) }}">
-                    <img class="img-rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
+                    <img class="rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
                 </a>
             </div>
             <div class="trade-content">

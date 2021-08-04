@@ -3,10 +3,10 @@
 
 {% block title %}Hedgehog - Edit Stock{% endblock %}
 
+{% block page_header %}
+    Edit Stock - {{ stock.name }}
+{% endblock %}
 {% block page_content %}
-    <div class="page-header">
-        <h1>Edit Stock</h1>
-    </div>
     <div class="col-md-4">
         {{ render_form(form) }}
     </div>
