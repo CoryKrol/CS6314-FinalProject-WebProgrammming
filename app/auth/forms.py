@@ -67,14 +67,14 @@ class RegistrationForm(FlaskForm):
     """
     Rendered by wtf.render_form()
     """
-    email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
-    username = StringField('Username',
-                           validators=[DataRequired(),
-                                       Length(1, 64),
-                                       # Starts with a letter and only contains letters/numbers/underscores/dots
-                                       Regexp('^[A-Za-z][A-Za-z0-9_.]*$',
-                                              0,
-                                              'Usernames must have only letters, numbers, dots or underscores')])
+    # email = StringField('Email', validators=[DataRequired(), Length(1, 64), Email()])
+    # username = StringField('Username',
+    #                        validators=[DataRequired(),
+    #                                    Length(1, 64),
+    #                                    # Starts with a letter and only contains letters/numbers/underscores/dots
+    #                                    Regexp('^[A-Za-z][A-Za-z0-9_.]*$',
+    #                                           0,
+    #                                           'Usernames must have only letters, numbers, dots or underscores')])
     password = PasswordField('Password',
                              validators=[DataRequired(),
                                          EqualTo('password2', message='Passwords must match.')])

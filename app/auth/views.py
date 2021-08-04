@@ -56,6 +56,24 @@ def logout():
 
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
+    conn = None
+    cursor = None
+    try:
+        username = request.form['username']
+
+        if username and request.method == 'POST':
+            conn = mysql.connect()
+
+        else:
+            resp = jsonify('<span class="text-danger"> Username is required! </span>')
+            resp.status_code = 200
+            return resp
+    except Exception as e:
+        print(e)
+    finally:
+        cursor.close()
+        conn.close()
+
     form = RegistrationForm()
     if form.validate_on_submit():
         new_user = User(email=form.email.data,
