@@ -1,4 +1,6 @@
-from flask import abort, current_app, make_response, render_template, redirect, request, url_for
+import os.path
+
+from flask import abort, current_app, make_response, render_template, redirect, request, url_for, send_from_directory
 from flask_login import current_user, login_required
 
 from . import main
@@ -23,6 +25,17 @@ def index():
                            trades=trades,
                            show_followed_trades=show_followed_trades,
                            pagination=pagination)
+
+
+@main.route('/files/images/<path:file_path>')
+def photos(file_path):
+    directory = 'files/images/' + file_path
+    dir_tuple = os.path.split(os.path.abspath(directory))
+    if os.path.basename(dir_tuple[0]) != 'images':
+        image_path = 'files/images/' + os.path.basename(dir_tuple[0])
+    else:
+        image_path = 'files/images'
+    return send_from_directory(image_path, dir_tuple[1])
 
 
 @main.route('/all')

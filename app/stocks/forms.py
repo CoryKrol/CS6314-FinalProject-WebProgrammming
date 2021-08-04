@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, DecimalField, StringField, SubmitField
+from flask_wtf.file import FileAllowed, FileRequired
+from wtforms import BooleanField, DecimalField, FileField, StringField, SubmitField
 from wtforms.validators import DataRequired, Length, ValidationError
 
+from .. import photos
 from ..models import Stock
 
 
@@ -12,6 +14,8 @@ class AddStockForm(FlaskForm):
     """
     ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
     name = StringField('Name', validators=[DataRequired(), Length(1, 64)])
+    photo = FileField('Logo', validators=[FileAllowed(photos, 'Images only'),
+                                          FileRequired('You must add a company logo')])
     active = BooleanField('Active')
     sector = StringField('Sector', validators=[DataRequired(), Length(1, 32)])
     year_high = DecimalField('52-Week High', places=2, validators=[DataRequired()])
@@ -43,6 +47,7 @@ class EditStockForm(FlaskForm):
     """
     ticker = StringField('Ticker', validators=[DataRequired(), Length(1, 5)])
     name = StringField('Name', validators=[DataRequired(), Length(1, 64)])
+    photo = FileField('Logo', validators=[FileAllowed(photos, 'Images only')])
     active = BooleanField('Active')
     sector = StringField('Sector', validators=[DataRequired(), Length(1, 32)])
     year_high = DecimalField('52-Week High', places=2, validators=[DataRequired()])

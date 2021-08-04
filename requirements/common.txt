@@ -10,6 +10,8 @@ Flask-Mail
 Flask-Migrate==3.1.0
 Flask-Moment
 Flask-SQLAlchemy
+Flask-Reuploaded
+Flask-Resize
 Flask-WTF
 itsdangerous
 Jinja2

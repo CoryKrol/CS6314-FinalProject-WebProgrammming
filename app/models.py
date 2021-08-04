@@ -132,6 +132,7 @@ class Stock(db.Model):
     ticker = db.Column(db.String(5), unique=True, index=True)
     sector = db.Column(db.String(32), index=True)
     is_active = db.Column(db.Boolean, default=True)
+    photo_filename = db.Column(db.String(256))
     year_high = db.Column(db.Float)
     year_low = db.Column(db.Float)
     trades = db.relationship('Trade', backref='stock', lazy='dynamic')

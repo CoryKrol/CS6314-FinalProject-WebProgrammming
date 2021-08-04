@@ -54,7 +54,7 @@ class PasswordResetRequestForm(FlaskForm):
 
 class PasswordResetForm(FlaskForm):
     """
-    Rendered by wtf.qrender_form()
+    Rendered by wtf.render_form()
     """
     password = PasswordField('New Password', validators=[DataRequired(),
                                                          EqualTo('password2', message='Passwords must match')])

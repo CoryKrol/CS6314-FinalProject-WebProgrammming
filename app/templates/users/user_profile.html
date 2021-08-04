@@ -4,7 +4,7 @@
 
 {% block page_header %}
     <img class="rounded profile-thumbnail" src="{{ user.gravatar(size=256) }}" alt="User avatar">
-    {{ user.username }}
+    <h1>{{ user.username }}</h1>
 {% endblock %}
 {% block profile_header %}
     <div class="profile-header">

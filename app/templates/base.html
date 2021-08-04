@@ -73,10 +73,9 @@
         <div class="row">
             <div class="col">
                 {{ render_messages(container=False, dismissible=True) }}
-                <div class="pb-2 mt-4 mb-2 border-bottom">
-                    <h1>{% block page_header %}{% endblock %}</h1>
-                    {% block profile_header %}
-                    {% endblock %}
+                <div class="row pb-2 mt-4 mb-2 border-bottom">
+                    {% block page_header %}{% endblock %}
+                    {% block profile_header %}{% endblock %}
                 </div>
                 {% block page_content %}{% endblock %}
             </div>
