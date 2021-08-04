@@ -17,6 +17,12 @@ class Config:
     FOLLOWERS_PER_PAGE = os.environ.get('FOLLOWERS_PER_PAGE') or 50
     TRADES_PER_PAGE = os.environ.get('TRADES_PER_PAGE') or 10
     WATCHLIST_PER_PAGE = os.environ.get('WATCHLIST_PER_PAGE') or 10
+    UPLOADED_PHOTOS_DEST = os.environ.get('UPLOADED_PHOTOS_DEST') or 'app/files/images'
+    UPLOADED_PHOTOS_URL = os.environ.get('UPLOADED_PHOTOS_URL') or 'http://localhost:5000/files/images/'
+    RESIZE_URL = os.environ.get('RESIZE_URL') or 'http://localhost:5000/files/images/'
+    RESIZE_ROOT = os.environ.get('RESIZE_ROOT') or 'app/files/images/'
+    RESIZE_TARGET_DIRECTORY = os.environ.get('RESIZE_TARGET_DIRECTORY') or 'resized-images'
+    RESIZE_STORAGE_BACKEND = os.environ.get('RESIZE_STORAGE_BACKEND') or 'file'
 
     @staticmethod
     def init_app(app):

@@ -3,11 +3,15 @@
 {% block title %}Hedgehog - {{ stock.name }}{% endblock %}
 
 {% block page_header %}
-    {{ stock.name }}
+    <div class="col-sm-3">
+        {% if stock.photo_filename %}
+            <img class="rounded img-thumbnail" src="{{ stock.photo_filename|resize('300x300', format='png') }}" alt="Company Logo">
+        {% endif %}
+    </div>
 {% endblock %}
 {% block profile_header %}
-    <div class="profile-header">
-        <h3>Trades of {{ stock.ticker }}</h3>
+    <div class="col-sm-9 right">
+        <h3>Trades of {{ stock.name }}</h3>
         <p>{{ stock.sector }}</p>
         <p>
             {% if not current_user.is_watching(stock) %}
@@ -20,6 +24,7 @@
             {% endif %}
         </p>
     </div>
+
 {% endblock %}
 {% block page_content %}
     {% include '_trades.html' %}

@@ -1,28 +1,31 @@
 <ul class="trades">
         {% for trade in trades %}
-        <li class="trade">
-            <div class="trade-thumbnail">
-                <a href="{{ url_for('users.user_profile', username=trade.user.username) }}">
-                    <img class="rounded profile-thumbnail" src="{{ trade.user.gravatar(size=40) }}" alt="Company logo">
-                </a>
-            </div>
-            <div class="trade-content">
-                <div class="trade-date">{{ moment(trade.timestamp).fromNow() }}</div>
-                <div class="trade-user"><a href="{{ url_for('users.user_profile', username=trade.user.username) }}">{{ trade.user.username }}</a></div>
-                <div class="trade-ticker"><a href="{{ url_for('stocks.stock_info', ticker=trade.stock.ticker) }}">{{ trade.stock.ticker }}</a></div>
-                <div class="trade-price">{{ trade.price }}</div>
-                <div class="trade-quantity">{{ trade.quantity }}</div>
-            </div>
-            <div class="trade-footer">
-                {% if current_user.is_administrator() %}
-                    <a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}">
-                        <span class="label label-danger">Edit [Admin]</span>
-                    </a>
-                {% endif %}
-                <a href="{{ url_for('trades.trade', trade_id=trade.id) }}">
-                    <span class="label label-danger">Permalink</span>
-                </a>
-            </div>
-        </li>
+            {% include '_trade_card.html' %}
+{#        <li class="trade">#}
+{#            <div class="trade-thumbnail">#}
+{#                {% if trade.stock.photo_filename %}#}
+{#                    <a href="{{ url_for('users.user_profile', username=trade.user.username) }}">#}
+{#                        <img class="rounded img-fluid" src="{{ photos.url(trade.stock.photo_filename) }}" alt="Company logo">#}
+{#                    </a>#}
+{#                {% endif %}#}
+{#            </div>#}
+{#            <div class="trade-content">#}
+{#                <div class="trade-date">{{ moment(trade.timestamp).fromNow() }}</div>#}
+{#                <div class="trade-user"><a href="{{ url_for('users.user_profile', username=trade.user.username) }}">{{ trade.user.username }}</a></div>#}
+{#                <div class="trade-ticker"><a href="{{ url_for('stocks.stock_info', ticker=trade.stock.ticker) }}">{{ trade.stock.ticker }}</a></div>#}
+{#                <div class="trade-price">{{ trade.price }}</div>#}
+{#                <div class="trade-quantity">{{ trade.quantity }}</div>#}
+{#            </div>#}
+{#            <div class="trade-footer">#}
+{#                {% if current_user.is_administrator() %}#}
+{#                    <a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}">#}
+{#                        <span class="label label-danger">Edit [Admin]</span>#}
+{#                    </a>#}
+{#                {% endif %}#}
+{#                <a href="{{ url_for('trades.trade', trade_id=trade.id) }}">#}
+{#                    <span class="label label-danger">Permalink</span>#}
+{#                </a>#}
+{#            </div>#}
+{#        </li>#}
         {% endfor %}
     </ul>

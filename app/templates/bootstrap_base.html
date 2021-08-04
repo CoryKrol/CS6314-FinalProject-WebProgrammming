@@ -6,13 +6,13 @@
         {% block head %}
             <title>{% block title %}{{title|default}}{% endblock title %}</title>
             {% block metas %}
-                <!-- Required meta tags -->
+                {# Required meta tags #}
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
             {% endblock metas %}
 
             {% block styles %}
-                <!-- Bootstrap CSS -->
+                {# Bootstrap CSS #}
                 {{ bootstrap.load_css() }}
             {% endblock styles %}
         {% endblock head %}
@@ -24,7 +24,7 @@
         {% block content %}
         {% endblock content %}
         {% block scripts %}
-            <!-- Optional JavaScript -->
+            {# Optional JavaScript #}
             {{ bootstrap.load_js() }}
         {% endblock scripts %}
     {% endblock body %}

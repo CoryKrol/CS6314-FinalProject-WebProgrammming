@@ -4,7 +4,7 @@ from typing import Final
 
 from . import stocks
 from .forms import AddStockForm, EditStockForm
-from .. import db
+from .. import db, photos
 from ..decorators import admin_required
 from ..models import Stock, Trade
 
@@ -19,6 +19,7 @@ def add_stock():
     if form.validate_on_submit():
         new_stock = Stock(ticker=form.ticker.data,
                           name=form.name.data,
+                          photo_filename=photos.save(form.photo.data),
                           is_active=form.active.data,
                           sector=form.sector.data,
                           year_high=form.year_high.data,
@@ -41,6 +42,7 @@ def edit_stock(ticker):
     if form.validate_on_submit():
         stock.ticker = form.ticker.data
         stock.name = form.name.data
+        stock.photo_filename = photos.save(form.photo.data)
         stock.is_active = form.active.data
         stock.sector = form.sector.data
         stock.year_high = form.year_high.data
