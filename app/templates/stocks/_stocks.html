@@ -1,0 +1,19 @@
+<ul class="stocks">
+        {% for stock in stocks %}
+            {% include 'stocks/_stock_row.html' %}
+{#        <li class="stock">#}
+{#            <div class="trade-thumbnail">#}
+{#                {% if stock.photo_filename %}#}
+{#                  <img class="rounded img-fluid" src="{{ photos.url(stock.photo_filename) }}" alt="Company logo">#}
+{#                {% endif %}#}
+{#            </div>#}
+{#            <div class="trade-content">#}
+{#                <div class="stock-name"><a href="{{ url_for('users.user_profile', username=trade.user.username) }}">{{ stock.name }}</a></div>#}
+{#                <div class="stock-ticker"><a href="{{ url_for('stocks.stock_info', ticker=trade.stock.ticker) }}">{{ stock.ticker }}</a></div>#}
+{#                <div class="stock-price">$50.00</div>#}
+{#            </div>#}
+{#            <div class="trade-footer">#}
+{#            </div>#}
+{#        </li>#}
+        {% endfor %}
+    </ul>

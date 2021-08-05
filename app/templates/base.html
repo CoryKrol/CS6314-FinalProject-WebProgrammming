@@ -31,7 +31,7 @@
                         <a class="nav-link" href="{{ url_for('main.index') }}">Home <span class="sr-only">(current)</span></a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
+                        <a class="nav-link" href="{{ url_for('stocks.viewAllStocks') }}">View All Stocks</a>
                     </li>
                     {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">

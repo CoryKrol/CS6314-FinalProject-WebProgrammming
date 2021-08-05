@@ -105,3 +105,10 @@ def unwatch(ticker):
     db.session.commit()
     flash('You are not watching %s anymore.' % stock.name)
     return redirect(url_for(STOCK_INFO, ticker=ticker))
+
+
+@stocks.route('/viewAllStocks')
+@login_required
+def viewAllStocks():
+    stocks = Stock.query.all()
+    return render_template('stocks/view_all_stocks.html', stocks=stocks)
