@@ -76,11 +76,6 @@ def register():
 def register_ajax():
     form = RegistrationForm()
     if request.method == 'POST':
-        # if User.query.filter_by(username=form.username.data).first():
-        #     form.username.errors.append('Username already taken.')
-        # if User.query.filter_by(email=form.email.data).first():
-        #     form.email.errors.append('Email already in use.')
-
         if form.validate():
             new_user = User(email=form.email.data,
                             username=form.username.data,
