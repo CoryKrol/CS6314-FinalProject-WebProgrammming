@@ -24,6 +24,7 @@ class Config:
     RESIZE_TARGET_DIRECTORY = os.environ.get('RESIZE_TARGET_DIRECTORY') or 'resized-images'
     RESIZE_STORAGE_BACKEND = os.environ.get('RESIZE_STORAGE_BACKEND') or 'file'
 
+
     @staticmethod
     def init_app(app):
         """Not needed"""

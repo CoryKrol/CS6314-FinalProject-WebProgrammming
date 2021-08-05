@@ -7,7 +7,7 @@ from flask_login import AnonymousUserMixin, UserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer, SignatureExpired, BadSignature
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from . import db, login_manager
+from . import db, login_manager, whooshee
 from .exceptions import ValidationError
 
 CASCADE: Final = 'all, delete-orphan'
@@ -125,6 +125,7 @@ class Watch(db.Model):
         return Watch(user_id=user.id, stock_id=stock.id)
 
 
+@whooshee.register_model('name', 'ticker', 'sector')
 class Stock(db.Model):
     __tablename__ = 'stocks'
     id = db.Column(db.Integer, primary_key=True)
@@ -239,6 +240,7 @@ class Follow(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+@whooshee.register_model('username', 'email', 'name', 'about_me', 'location')
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)

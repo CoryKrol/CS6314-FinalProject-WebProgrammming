@@ -16,8 +16,8 @@
             </div>
         </div>
     </div>
-            <div class="card-footer">
-            {% if current_user.is_administrator() %}
+        <div class="card-footer">
+        {% if current_user.is_administrator() %}
             <a href="{{ url_for('trades.edit_trade', trade_id=trade.id) }}">
                 <span class="label label-danger">Edit [Admin]</span>
             </a>
@@ -25,5 +25,5 @@
         <a href="{{ url_for('trades.trade', trade_id=trade.id) }}">
             <span class="label label-danger">Permalink</span>
         </a>
-        </div>
+    </div>
 </div>
