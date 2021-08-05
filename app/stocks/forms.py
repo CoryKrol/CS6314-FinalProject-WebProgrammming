@@ -16,7 +16,6 @@ class AddStockForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(1, 64)])
     photo = FileField('Logo', validators=[FileAllowed(photos, 'Images only'),
                                           FileRequired('You must add a company logo')])
-    active = BooleanField('Active')
     sector = StringField('Sector', validators=[DataRequired(), Length(1, 32)])
     year_high = DecimalField('52-Week High', places=2, validators=[DataRequired()])
     year_low = DecimalField('52-Week Low', places=2, validators=[DataRequired()])

@@ -3,7 +3,12 @@
 {% block title %}Hedgehog - Search Results{% endblock %}
 {% block page_header %}Search Results{% endblock %}
 {% block page_content %}
-    {% include 'stocks/_stocks.html' %}
+    {% if stocks %}
+        {% include 'stocks/_stocks.html' %}
+    {% elif users %}
+        {% include 'users/_users.html' %}
+    {% endif %}
+
     {% if pagination %}
         {{ render_pagination(pagination, endpoint=endpoint, prev='«', next='»', align='center') }}
     {% endif %}

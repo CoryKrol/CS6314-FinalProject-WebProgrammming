@@ -3,6 +3,7 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
+from flask_whooshee import Whooshee
 from flask_resize import Resize
 from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import UploadSet, configure_uploads, IMAGES
@@ -15,6 +16,7 @@ moment = Moment()
 db = SQLAlchemy()
 photos = UploadSet('photos', IMAGES)
 resize = Resize()
+whooshee = Whooshee()
 
 login_manager = LoginManager()
 login_manager.login_view = 'auth.login'  # Must prefix route with the auth blueprint namespace
@@ -37,6 +39,9 @@ def create_app(config_name):
     login_manager.init_app(app)
     configure_uploads(app, [photos])
     resize.init_app(app)
+    # whooshee = Whooshee(app)
+    whooshee.init_app(app)
+    # whooshee.reindex()
 
     # attach routes & error handlers to application here
     from .main import main as main_blueprint

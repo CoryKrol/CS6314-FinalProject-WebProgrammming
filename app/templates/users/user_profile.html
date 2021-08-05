@@ -50,7 +50,7 @@
 {% endblock %}
 {% block page_content %}
     <h3>Trades by {{ user.username }}</h3>
-    {% include '_trades.html' %}
+    {% include 'trades/_trades.html' %}
     {% if pagination %}
         {{ render_pagination(pagination, endpoint='.user_profile', prev='«', next='»', align='center', args={'username':user.username}) }}
     {% endif %}

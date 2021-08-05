@@ -3,20 +3,23 @@
 {% block title %}Hedgehog - {{ title }} {{ user.username }}{% endblock %}
 {% block page_header %}{{ title }} {{ user.username }}{% endblock %}
 {% block page_content %}
-    <table class="table table-hover followers" aria-label="{{ title }} {{ user.username }}">
+    <table class="table table-hover followers table-responsive-sm" aria-label="{{ title }} {{ user.username }}">
         <thead><tr><th scope="col">Stock</th><th scope="col">Since</th><th scope="col">Delete</th></tr></thead>
+        <tbody class="table-striped">
         {% for watch in watches %}
-            <tr>
-                <td>
+            <tr class="d-table-row">
+
+                <td class="col-3">
                     <a href="{{ url_for('stocks.stock_info', ticker = watch.stock.ticker) }}">
-                        <img class="rounded" src="{{ watch.stock.name }}" alt="Company logo">
+                        <img class="rounded img-thumbnail" src="{{ watch.stock.photo_filename|resize('100x100', format='png') }}" alt="Company logo">
                         {{ watch.stock.name }}
                     </a>
                 </td>
-                <td>{{ moment(watch.timestamp).format('L') }}</td>
-                <td><a href="{{ url_for('stocks.unwatch', ticker=watch.stock.ticker) }}" class="btn btn-primary">Delete</a></td>
+                <td class="col-6">{{ moment(watch.timestamp).format('L') }}</td>
+                <td class="col-3"><a href="{{ url_for('stocks.unwatch', ticker=watch.stock.ticker) }}" class="btn btn-primary">Delete</a></td>
             </tr>
         {% endfor %}
+    </tbody>
     </table>
     {% if pagination %}
         {{ render_pagination(pagination, endpoint=endpoint, prev='«', next='»', align='center', args={'username':user.username}) }}

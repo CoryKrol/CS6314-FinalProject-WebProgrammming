@@ -27,7 +27,7 @@
 
 {% endblock %}
 {% block page_content %}
-    {% include '_trades.html' %}
+    {% include 'trades/_trades.html' %}
     {% if pagination %}
         {{ render_pagination(pagination, endpoint='.stock_info', prev='«', next='»', align='center', args={'ticker':stock.ticker}) }}
     {% endif %}

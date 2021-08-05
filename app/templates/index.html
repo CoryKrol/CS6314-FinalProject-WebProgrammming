@@ -23,7 +23,7 @@
                 </li>
             {% endif %}
         </ul>
-        {% include '_trades.html' %}
+        {% include 'trades/_trades.html' %}
     </div>
     {% if pagination %}
         {{ render_pagination(pagination, endpoint='.index', prev='«', next='»', align='center') }}
