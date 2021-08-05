@@ -31,12 +31,6 @@
                         <li class="nav-item active">
                             <a class="nav-link" href="{{ url_for('main.index') }}">Home <span class="sr-only">(current)</span></a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('stocks.viewAllStocks') }}">View All Stocks</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('trades.new_stock_trade') }}">New Trade</a>
-                        </li>
                         {% if current_user.is_authenticated %}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -45,7 +39,8 @@
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="{{ url_for('users.user_profile', username=current_user.username) }}">Profile</a>
                                 <a class="dropdown-item" href="{{ url_for('users.watchlist') }}">Watchlist</a>
-                                <a class="dropdown-item" href="{{ url_for('users.watchlist') }}">Make Trade</a>
+                                <a class="dropdown-item" href="{{ url_for('trades.new_stock_trade') }}">New Trade</a>
+                                <a class="dropdown-item" href="{{ url_for('stocks.view_all_stocks') }}">View All Stocks</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">Change Password</a>
                                 <a class="dropdown-item" href="{{ url_for('auth.change_email_request') }}">Change Email</a>

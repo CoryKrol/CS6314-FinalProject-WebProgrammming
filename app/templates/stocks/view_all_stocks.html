@@ -11,7 +11,7 @@
 
 {% endblock %}
 {% block page_content %}
-    {% include 'stocks/_stocks.html' %}
+    {% include 'stocks/_stocks_table.html' %}
     {% if pagination %}
         {{ render_pagination(pagination, endpoint='.view_all_stocks', prev='«', next='»', align='center', args={'':''}) }}
     {% endif %}

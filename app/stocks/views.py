@@ -117,7 +117,7 @@ def unwatch(ticker):
 
 @stocks.route('/viewAllStocks')
 @login_required
-def viewAllStocks():
+def view_all_stocks():
     search_form = SearchForm()
-    stocks = Stock.query.all()
-    return render_template('stocks/view_all_stocks.html', stocks=stocks, search_form=search_form)
+    stocks_list = Stock.query.all()
+    return render_template('stocks/view_all_stocks.html', stocks=stocks_list, search_form=search_form)
