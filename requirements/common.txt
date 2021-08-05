@@ -12,6 +12,7 @@ Flask-Moment
 Flask-SQLAlchemy
 Flask-Reuploaded
 Flask-Resize
+Flask-Whooshee
 Flask-WTF
 itsdangerous
 Jinja2

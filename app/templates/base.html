@@ -1,5 +1,6 @@
 {% extends "bootstrap_base.html" %}
 {% from 'bootstrap/utils.html' import render_messages, render_static %}
+{% from 'bootstrap/form.html' import render_form %}
 
 {% block title %}Hedgehog{% endblock %}
 
@@ -40,7 +41,7 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                                 <a class="dropdown-item" href="{{ url_for('users.user_profile', username=current_user.username) }}">Profile</a>
-                                <a class="dropdown-item" href="{{ url_for('users.watchlist') }}">Wishlist</a>
+                                <a class="dropdown-item" href="{{ url_for('users.watchlist') }}">Watchlist</a>
                                 <a class="dropdown-item" href="{{ url_for('users.watchlist') }}">Make Trade</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">Change Password</a>
@@ -61,6 +62,9 @@
                         </li>
                     {% endif %}
                 </ul>
+            {% if search_form %}
+                {{ render_form(search_form, form_type='inline', extra_classes='my-2 my-lg-0') }}
+            {% endif %}
             </div>
         </div>
     </nav>

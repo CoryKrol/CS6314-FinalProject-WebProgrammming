@@ -11,6 +11,7 @@ if os.environ.get('FLASK_COVERAGE'):
 from app import create_app, db
 from app.models import Follow, Permission, Role, Stock, Trade, User
 from flask_migrate import Migrate
+from app import whooshee
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
@@ -19,6 +20,11 @@ migrate = Migrate(app, db)
 @app.shell_context_processor
 def make_shell_context():
     return dict(db=db, Follow=Follow, Permission=Permission, Role=Role, Stock=Stock, Trade=Trade, User=User)
+
+
+@app.cli.command()
+def reindex():
+    whooshee.reindex()
 
 
 @app.cli.command()
