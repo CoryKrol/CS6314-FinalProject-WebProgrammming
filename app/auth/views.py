@@ -6,6 +6,7 @@ from ..email import send_email
 from ..models import User
 from .forms import ChangeEmailForm, ChangePasswordForm, LoginForm, PasswordResetForm, PasswordResetRequestForm, \
     RegistrationForm
+from ..exceptions import ValidationError
 from typing import Final
 
 MAIN_INDEX: Final = 'main.index'
@@ -69,6 +70,30 @@ def register():
         flash('A confirmation email has been sent to complete the registration process')
         return redirect(url_for(MAIN_INDEX))
     return render_template('forms.html', form=form, title='Registration Form')
+
+
+@auth.route('/register_ajax', methods=['GET', 'POST'])
+def register_ajax():
+    form = RegistrationForm()
+    if request.method == 'POST':
+        # if User.query.filter_by(username=form.username.data).first():
+        #     form.username.errors.append('Username already taken.')
+        # if User.query.filter_by(email=form.email.data).first():
+        #     form.email.errors.append('Email already in use.')
+
+        if form.validate():
+            new_user = User(email=form.email.data,
+                            username=form.username.data,
+                            password=form.password.data)
+            db.session.add(new_user)
+            db.session.commit()
+            token = new_user.generate_account_confirmation_token()
+            send_email(new_user.email, 'Confirm your Hedgehog Account', '/auth/email/confirmation', user=new_user,
+                       token=token)
+            flash('A confirmation email has been sent to complete the registration process')
+            return redirect(url_for(MAIN_INDEX))
+        return jsonify(form.errors), 400
+    return render_template('ajax_register.html', form=form, title='Registration Form')
 
 
 @auth.route('/confirmation/<token>')
