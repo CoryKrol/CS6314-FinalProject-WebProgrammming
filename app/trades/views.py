@@ -1,4 +1,4 @@
-from flask import current_app, flash, render_template, redirect, request, url_for
+from flask import abort, current_app, flash, render_template, redirect, request, url_for
 from flask_login import current_user, login_required
 
 from . import trades
@@ -57,3 +57,24 @@ def trades_list():
 def trade(trade_id):
     trade_object = Trade.query.get_or_404(trade_id)
     return render_template('trades/trade.html', trades=[trade_object])
+
+
+
+# noinspection PyProtectedMember
+@trades.route('/new_stock_trade', methods=['GET', 'POST'])
+@login_required
+def new_stock_trade():
+    form = BuyStockForm()
+    if form.validate_on_submit():
+        stock = Stock.query.filter_by(ticker=form.ticker.data).first()
+        if stock is None:
+            abort(404)
+        stock_trade = Trade(stock_id=stock.id,
+                          user_id=current_user.id,
+                          quantity=form.quantity.data,
+                          price=form.price.data)
+        db.session.add(stock_trade)
+        db.session.commit()
+        flash('Trade for ' + str(stock_trade.id) + ' created successfully.')
+        return redirect(url_for('users.user_profile', username=current_user.username))
+    return render_template('trades/new_trade.html', form=form)
